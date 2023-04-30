@@ -1,20 +1,32 @@
 <template>
-  <h1>
-    Question {{ currentQuestionId }}
-  </h1>
-  <p>
-    description: {{ questions[currentQuestionId - 1].content}}
-  </p>
-
-  <router-link v-if="currentQuestionId < questions.length" :to="{ name: 'question', params: { id: currentQuestionId + 1 } }">
-    <button>next</button>
+  <div>
+    <h1>Question {{ currentQuestionId + 1 }}</h1>
+    {{ questions[currentQuestionId].description }}
+  </div>
+  <router-link v-if="hasNextQuestion" :to="{ name: 'question', params: { id: currentQuestionId + 1 }}">
+    <button>
+      next
+    </button>
   </router-link>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
-import questions from '../data/questions';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { firebaseApp } from "../firebase"
+import { getDatabase, ref as fbRef, onValue} from "firebase/database"
+
+const currentQuestionId = ref(0)
+const questions = ref([{description: ''}])
+const hasNextQuestion = computed(() => currentQuestionId.value < questions.value.length)
+
+
+const database = getDatabase(firebaseApp)
+const questionBankRef = fbRef(database, 'root/questionBank');
+
+onValue(questionBankRef, (snapshot) => {
+  questions.value = snapshot.val()
+})
 
 // // same as beforeRouteLeave option with no access to `this`
 // onBeforeRouteLeave((to, from) => {
@@ -25,8 +37,6 @@ import questions from '../data/questions';
 //       // cancel the navigation and stay on the same page
 //       if (!answer) return false
 // })
-
-const currentQuestionId = ref(1)
 
 // same as beforeRouteUpdate option with no access to `this`
 onBeforeRouteUpdate(async (to, from) => {

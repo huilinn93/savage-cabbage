@@ -3,7 +3,7 @@
     instructions
   </div>
   <button>
-    <router-link :to="{ name: 'question', params: { id: 1 } }">Begin</router-link>
+    <router-link :to="{ name: 'question', params: { id: 0 } }">Begin</router-link>
   </button>
 </template>
 
