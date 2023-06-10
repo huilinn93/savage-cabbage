@@ -2,9 +2,10 @@
   <div>
     <h1>Question {{ currentQuestionId + 1 }}</h1>
     {{ questions[currentQuestionId].description }}
+    currentQuestionId: {{ currentQuestionId }}
   </div>
-  <router-link v-if="hasNextQuestion" :to="{ name: 'question', params: { id: currentQuestionId + 1 }}">
-    <button>
+  <router-link :to="{ name: 'question', params: { tid: currentTeamId, qid: currentQuestionId + 1 }}">
+    <button v-if="hasNextQuestion" @click="onNextPageClick()">
       next
     </button>
   </router-link>
@@ -12,21 +13,35 @@
 
 <script setup lang="ts">
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { firebaseApp } from "../firebase"
-import { getDatabase, ref as fbRef, onValue} from "firebase/database"
+import { getDatabase, ref as fbRef, get as fbGet, child} from "firebase/database"
+
+// TODO: retrieve current team id
+const currentTeamId = ref(0)
 
 const currentQuestionId = ref(0)
 const questions = ref([{description: ''}])
-const hasNextQuestion = computed(() => currentQuestionId.value < questions.value.length)
+const hasNextQuestion = computed(() => {
+  return currentQuestionId.value < questions.value.length
+})
+const onNextPageClick = ():void => {
+  currentQuestionId.value+=1
+}
 
-
+// retrieve question bank data
 const database = getDatabase(firebaseApp)
 const questionBankRef = fbRef(database, 'root/questionBank');
 
-onValue(questionBankRef, (snapshot) => {
-  questions.value = snapshot.val()
-})
+fbGet(child(questionBankRef, 'root/questionBank')).then((snapshot) => {
+  if (snapshot.exists()) {
+    questions.value = snapshot.val()
+  } else {
+    console.log("No question found");
+  }
+}).catch((error) => {
+  console.error(error);
+});
 
 // // same as beforeRouteLeave option with no access to `this`
 // onBeforeRouteLeave((to, from) => {

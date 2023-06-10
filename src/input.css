@@ -37,6 +37,6 @@
 
 @layer components {
   button {
-    @apply bg-beige rounded-lg px-2 text-champagne my-5
+    @apply bg-beige rounded-lg px-2 py-1 w-1/2 text-champagne my-1 mx-auto
   }
 }

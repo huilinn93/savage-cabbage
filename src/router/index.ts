@@ -14,13 +14,13 @@ export default createRouter({
       component: () => import('@/views/Introduction.vue'),
     },
     {
-      path: "/:catchAll(.*)",
-      component: () => import('@/views/NotFound.vue'),
-    },
-    {
-      path: '/question/:id',
+      path: '/:id/question/:id',
       name: 'question',
       component: () => import('@/views/Question.vue'),
+    },
+    {
+      path: "/:catchAll(.*)",
+      component: () => import('@/views/NotFound.vue'),
     },
   ],
 })

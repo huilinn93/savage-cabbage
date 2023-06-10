@@ -2,24 +2,77 @@
 <template>
   <div class="text-grey font-header text-xl py-2">Scavenger Hunt</div>
   <div class="my-1">
-    my table number is 
-    <select id="countries" class="rounded-lg p-1" v-model="teamNumber">
-      <option v-for="teamNumber in totalTeams" :key="teamNumber" :value="teamNumber">
-        {{ teamNumber }}
+    my table number is
+    <select id="teams" class="rounded-lg p-1" v-model="teamId" @change="onChange">
+      <option v-for="TeamId in totalTeams" :key="TeamId" :value="TeamId">
+        {{ TeamId }}
       </option>
     </select>
   </div>
-  <div class="my-1">
+  <div class="my-3">
     we are a bunch of
-    <input type="text" class="rounded-lg p-1"/>
+    <input type="text" class="rounded-lg p-1" :placeholder="teamDescPlaceholderRef" v-model="description" />
   </div>
-  <router-link to="/introduction">
-    <button>sign in</button>
-  </router-link>
+  <div class="flex flex-col">
+    <button v-if="computedTeamId">Resume Game</button>
+    <button v-else @click="login">Login</button>
+    <router-link to="/introduction" class="w-1/2 mx-auto">
+      <button>
+        Instructions
+      </button>
+      </router-link>
+  </div>
 </template>
   
 <script setup lang="ts">import { ref } from 'vue';
+import { getDatabase, ref as fbRef, child as fbChild, set as fbSet,onValue as fbOnValue, push as fbPush, update as fbUpdate } from "firebase/database"
+import { firebaseApp } from "../firebase"
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { Team } from '../types';
 
-const teamNumber = ref('')
+const teamId = ref()
+const teamDescPlaceholderRef = ref('')
+
+const teamProgress = ref(1)
+const description = ref('')
 const totalTeams = Array.from({length: 30}, (_, i) => i + 1)
+const store = useStore()
+
+const fbDatabase = getDatabase(firebaseApp)
+const teamBankRef = fbRef(fbDatabase, 'teamsBank');
+
+const onChange = (event: Event): void => {
+  teamId.value = (event.target as HTMLInputElement).value
+
+  fbOnValue(teamBankRef, (snapshot) => {
+    const teamsBank = snapshot.val();
+    const team = teamsBank[teamId.value]
+
+    if (!team) return
+
+    teamDescPlaceholderRef.value = team.description
+    teamProgress.value = Object.keys(team.questions).length + 1
+  })
+}
+
+const createOrUpdateTeam = () => {
+  fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamId.value), {
+      description: description.value,
+      questions: {}
+  });
+}
+
+const login = () => {
+  if (!teamId.value) return
+  if (!description.value) {
+    description.value = teamDescPlaceholderRef.value
+  }
+
+  store.dispatch('login', { team: { id: teamId.value, description: description.value, teamProgress: teamProgress.value }})
+
+  createOrUpdateTeam()
+}
+
+const computedTeamId = computed(() => store.getters.getTeamId)
 </script>
