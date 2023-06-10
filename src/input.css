@@ -28,7 +28,6 @@
   font-size: 24px;
   color: #3F474F;
   text-align: center;
-  padding: auto 4vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,6 +36,6 @@
 
 @layer components {
   button {
-    @apply bg-beige rounded-lg px-2 py-1 w-1/2 text-champagne my-1 mx-auto
+    @apply bg-beige rounded-lg px-2 py-1 text-champagne my-1 w-full
   }
 }

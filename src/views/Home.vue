@@ -1,22 +1,22 @@
 
 <template>
-  <div class="text-grey font-header text-xl py-2">Scavenger Hunt</div>
+  <div class="text-grey font-header text-xl py-2 leading-10">Scavenger Hunt</div>
+  <div class="my-3">
+    we are a bunch of
+    <input type="text" class="rounded-lg p-1" :placeholder="teamDescPlaceholderRef" v-model="description" />
+  </div>
   <div class="my-1">
-    my table number is
+    from table
     <select id="teams" class="rounded-lg p-1" v-model="teamId" @change="onChange">
       <option v-for="TeamId in totalTeams" :key="TeamId" :value="TeamId">
         {{ TeamId }}
       </option>
     </select>
   </div>
-  <div class="my-3">
-    we are a bunch of
-    <input type="text" class="rounded-lg p-1" :placeholder="teamDescPlaceholderRef" v-model="description" />
-  </div>
-  <div class="flex flex-col">
+  <div class="flex flex-col w-1/2 mx-auto my-5">
     <button v-if="computedTeamId">Resume Game</button>
     <button v-else @click="login">Login</button>
-    <router-link to="/introduction" class="w-1/2 mx-auto">
+    <router-link to="/introduction" class="w-full">
       <button>
         Instructions
       </button>
@@ -29,7 +29,6 @@ import { getDatabase, ref as fbRef, child as fbChild, set as fbSet,onValue as fb
 import { firebaseApp } from "../firebase"
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { Team } from '../types';
 
 const teamId = ref()
 const teamDescPlaceholderRef = ref('')
