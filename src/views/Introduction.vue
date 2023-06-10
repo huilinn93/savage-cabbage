@@ -2,8 +2,14 @@
   <div class="font-serif">
     instructions
   </div>
-  <router-link :to="`team/${computedTeamNumber}/question/${computedQuestionNumber}`">
-    <button>Begin</button>
+  <div>
+    <ul>1. Snap a photo for each clue you see on the next few screens.</ul>
+  </div>
+  <router-link v-if="computedTeamId" :to="`team/${computedTeamId}/question/${computedTeamProgress}`">
+    <button>Continue Hunt!</button>
+  </router-link>
+  <router-link v-else to="/">
+    <button>Login</button>
   </router-link>
   <!-- <button @click="updateStore">for testing</button> -->
 </template>
@@ -17,20 +23,11 @@ import { Team } from '../types';
 
 const fbDatabase = getDatabase(firebaseApp)
 const store = useStore()
-const computedTeamNumber = computed(() => store.getters.getTeamNumber)
-const computedQuestionNumber = computed(() => store.getters.getTeamProgress)
+const computedTeamId = computed(() => store.getters.getTeamId)
+const computedTeamProgress = computed(() => store.getters.getTeamProgress)
 
 const updateStore = () => store.dispatch('updateTeamProgress', { team: { teamProgress: 3 }})
-const teamRef = fbRef(fbDatabase, 'teamsBank');
-fbOnValue(teamRef, (snapshot) => {
-  const teams: Team = snapshot.val();
-console.log(teams, 'teamteamsss')
-  for (const team in teams) {
-    if(team === 'number') {
-      // teamProgress.value = teams['questions']?.length || 1
-    }
-  }
-});
+const teamsBankRef = fbRef(fbDatabase, 'teamsBank');
 
 // const newQnKey = fbPush(fbChild(fbRef(fbDatabase), 'teamsBank/2/questions'), {
 //         3: '3something',
@@ -39,11 +36,11 @@ console.log(teams, 'teamteamsss')
 // const qnIdentifier = ref()
 // qnIdentifier.value = newQnKey
 
-const qnsData = {
-      2: '2 more',
-    }
-  const fbUpdates: any = {}
-  fbUpdates['/teamsBank/' + 2 + '/questions/'] = qnsData;
+// const qnsData = {
+//       2: '2 more',
+//     }
+//   const fbUpdates: any = {}
+//   fbUpdates['/teamsBank/' + 2 + '/questions/'] = qnsData;
 
   // return fbUpdate(fbRef(fbDatabase), fbUpdates);
 </script>

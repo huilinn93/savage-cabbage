@@ -6,7 +6,8 @@
 
 export type Team = {
   id: string
-  description?: string
+  description: string
+  questions: {[index: number]: string}
 }
 
 // export interface PropsIcon {
