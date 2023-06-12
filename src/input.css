@@ -31,11 +31,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
 }
 
 @layer components {
   button {
-    @apply bg-beige rounded-lg px-2 py-1 text-champagne my-1 w-full
+    @apply bg-beige rounded-lg px-2 py-1 text-champagne my-1 w-full disabled:opacity-40
   }
 }

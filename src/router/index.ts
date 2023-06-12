@@ -12,14 +12,15 @@ export default createRouter({
       path: '/introduction',
       name: 'introduction',
       component: () => import('@/views/Introduction.vue'),
+      // props: route => ({ query: route.query.teamId })
     },
     {
-      path: '/:id/question/:id',
+      path: '/:tid/question/:id',
       name: 'question',
       component: () => import('@/views/Question.vue'),
     },
     {
-      path: "/:catchAll(.*)",
+      path: "/:catchAll(.*)*",
       component: () => import('@/views/NotFound.vue'),
     },
   ],

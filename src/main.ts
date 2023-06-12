@@ -13,62 +13,42 @@ const teamsBankRef = fbRef(fbDatabase, 'teamsBank')
 
 // Create a new store instance.
 const store = createStore({
-    state: {
-      teams: {}
+  state: {
+    teams: {} as {[key: string]: Team},
+    currentTeam: {
+      id: '',
+      data: {} as Team,
     },
-    getters: {
-      getTeams: state => state.teams,
+  },
+  getters: {
+    getTeams: state => state.teams,
+    getCurrentTeam: state => state.currentTeam,
+  },
+  actions: {
+    fetchTeams({ commit }) {
+      fbOnValue(teamsBankRef, (snapshot) => {
+        const teamsBank = snapshot.val()
+        let teams = []
+        teams.push(teamsBank)
+        commit('fetchTeams', teams[0])
+      })
     },
-    actions: {
-      fetchTeams({ commit }) {
-        fbOnValue(teamsBankRef, (snapshot) => {
-          const teamsBank = snapshot.val()
-          let teams = []
-          teams.push(teamsBank)
-          commit('fetchTeams', teams[0])
-        })
-      }
-    },
-    mutations: {
-      fetchTeams(state, teams) {
-        state.teams = teams
-      }
+    setCurrentTeam({ commit }, teamId) {
+      commit('setCurrentTeam', teamId)
     }
-  })
+  },
+  mutations: {
+    fetchTeams(state, teams) {
+      state.teams = teams
+    },
+    setCurrentTeam(state, currentTeam: {teamId: string, teamData: Team}) {
+      state.currentTeam.id = currentTeam.teamId
+      state.currentTeam.data = currentTeam.teamData
+    },
+  }
+})
 
-  store.dispatch('fetchTeams');
-
-// const store = createStore({
-//   state: () => ({
-//     team: {
-//       id: null,
-//       description: null,
-//       teamProgress: null,
-//     },
-//   }),
-//   getters: {
-//     getTeamId: state => state.team.id,
-//     getTeamProgress: state => state.team.teamProgress,
-//   },
-//   actions: {
-//     login({ commit }, { team }) {
-//       commit('SET_TEAM', team)
-//     },
-//     logout({ commit }) {
-//       commit('SET_TEAM', null)
-//     },
-//     updateTeamDescription({ commit }, { description }) {
-//       commit('UPDATE_TEAM_DESCRIPTION', description)
-//     },
-//   },
-//   mutations: {
-//     SET_TEAM(state, team) {
-//       state.team = team
-//     },
-//     UPDATE_TEAM_DESCRIPTION(state, description) {
-//       state.team.description = description
-//   }}
-// })
+store.dispatch('fetchTeams');
 
 const app = createApp(App)
 app.use(router).mount('#app')
