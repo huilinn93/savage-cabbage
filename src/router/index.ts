@@ -9,19 +9,22 @@ export default createRouter({
       component: () => import('@/views/Home.vue'),
     },
     {
-      path: '/introduction',
+      path: '/introduction:tid?',
       name: 'introduction',
       component: () => import('@/views/Introduction.vue'),
-      // props: route => ({ query: route.query.teamId })
     },
     {
-      path: '/:tid/question/:id',
+      path: '/question:tid?:qid?',
       name: 'question',
       component: () => import('@/views/Question.vue'),
     },
     {
       path: "/:catchAll(.*)*",
       component: () => import('@/views/NotFound.vue'),
+    },
+    {
+      path: "/allImages",
+      component: () => import('@/views/MainScreen.vue'),
     },
   ],
 })

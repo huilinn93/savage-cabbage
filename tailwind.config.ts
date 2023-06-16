@@ -31,7 +31,7 @@ export default <Partial<Config>>{
         sm: '1em',
         lg: '1.25em',
         xl: '1.55em',
-        xxl: '1.9em'
+        xxl: '2.2em'
       },
     }
   },

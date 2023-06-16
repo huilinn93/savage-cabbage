@@ -1,8 +1,8 @@
 <template>
-  <div class="text-grey font-header text-xxl pb-5 leading-10 uppercase">
+  <h1 class="text-grey font-header text-xxl my-auto">
     Scavenger Hunt
-  </div>
-  <div class="uppercase text-xs">
+  </h1>
+  <div class="uppercase my-auto">
     table
     <select id="teams" class="p-1 font-serif" v-model="teamIdRef">
       <option v-for="TeamId in totalTeams" :key="TeamId" :value="TeamId">
@@ -10,28 +10,26 @@
       </option>
     </select>
     ,
-  </div>
-  <div class="text-xs w-100">
-    also known as
+    <div>also known as</div>
     <textarea
       type="text"
-      class="px-3 py-2 font-serif italic"
+      class="px-3 font-serif italic"
       :placeholder="teamDescPlaceholderRef"
       v-model="descriptionRef"
     />
   </div>
-  <div class="flex flex-col w-1/2 mx-auto mt-5">
+  <div class="w-1/2 m-auto">
     <router-link
       :to="
         teamProgressRef === 0
-          ? { path: '/introduction', query: { id: teamIdRef } }
-          : `team/${teamIdRef}/question/${teamProgressRef}`
+          ? { path: '/introduction', query: { tid: teamIdRef } }
+          : { path: '/question', query: { tid: teamIdRef, qid: teamProgressRef } }
       "
       class="w-full"
     >
       <button @click="login" :disabled="!teamIdRef">Login</button>
     </router-link>
-    <router-link :to="{ path: '/introduction', query: { id: teamIdRef } }">
+    <router-link :to="{ path: '/introduction', query: { tid: teamIdRef } }">
       <button>Instructions</button>
     </router-link>
   </div>

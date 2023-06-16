@@ -1,65 +1,65 @@
 <template>
   <div>
-    <h1>Question {{ currentQuestionId + 1 }}</h1>
-    {{ questions[currentQuestionId].description }}
-    currentQuestionId: {{ currentQuestionId }}
+    <h1 class="text-header italic text-sm">Hunt {{ currentQuestionIdRef }}</h1>
+    <h1 class="text-header">{{ questionBank[currentQuestionIdRef - 1] }}</h1>
   </div>
-  <router-link :to="{ name: 'question', params: { tid: currentTeamId, qid: currentQuestionId + 1 }}">
-    <button v-if="hasNextQuestion" @click="onNextPageClick()">
-      next
-    </button>
-  </router-link>
+  <div class="mx-auto">
+    <div>Choose an Image</div>
+    <input class="w-1/2" type="file"/>
+  </div>
+  <button
+    v-if="hasNextQuestion"
+    @click="onNextPageClick()"
+    :disabled="!hasNextQuestion"
+  >
+    Next
+  </button>
+  <button
+    class="w-1/2 mx-auto"
+    v-else
+    @click="() => router.push('/introduction')"
+  >
+    Thank you for participating!
+  </button>
 </template>
 
 <script setup lang="ts">
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
-import { computed, ref } from 'vue';
-import { firebaseApp } from "../firebase"
-import { getDatabase, ref as fbRef, get as fbGet, child} from "firebase/database"
+  import { useRoute, useRouter } from 'vue-router'
+  import { computed, ref } from 'vue'
+  import { useStore } from 'vuex'
+  import questionBank from '../data/QuestionBankService'
 
-// TODO: retrieve current team id
-const currentTeamId = ref(0)
+  const MAX_QUESTIONS = questionBank.length
 
-const currentQuestionId = ref(0)
-const questions = ref([{description: ''}])
-const hasNextQuestion = computed(() => {
-  return currentQuestionId.value < questions.value.length
-})
-const onNextPageClick = ():void => {
-  currentQuestionId.value+=1
-}
+  const store = useStore()
+  const teams = computed(() => store.getters.getTeams)
 
-// retrieve question bank data
-const database = getDatabase(firebaseApp)
-const questionBankRef = fbRef(database, 'root/questionBank');
+  const route = useRoute()
+  const currentQuestionIdRef = ref(parseInt(route.query.qid as string))
+  const proceedToNextQuestionRef = ref(true)
 
-fbGet(child(questionBankRef, 'root/questionBank')).then((snapshot) => {
-  if (snapshot.exists()) {
-    questions.value = snapshot.val()
-  } else {
-    console.log("No question found");
+  const hasNextQuestion = computed(() => currentQuestionIdRef.value < MAX_QUESTIONS)
+
+  const router = useRouter()
+  const onNextPageClick = () => {
+    const answer = window.confirm(
+      "Lockin' it in?"
+    )
+
+    proceedToNextQuestionRef.value = answer
+    if (answer) {
+      router.push({query: { qid: currentQuestionIdRef.value + 1 }})
+      return currentQuestionIdRef.value += 1
+    } else {
+      currentQuestionIdRef.value = parseInt(route.query.qid as string)
+    }
   }
-}).catch((error) => {
-  console.error(error);
-});
 
-// // same as beforeRouteLeave option with no access to `this`
-// onBeforeRouteLeave((to, from) => {
-//   console.log(to, '<----onBeforeRouteLeave---->', from)
-//       const answer = window.confirm(
-//         'Do you really want to leave? you have unsaved changes!'
-//       )
-//       // cancel the navigation and stay on the same page
-//       if (!answer) return false
-// })
+  // same as beforeRouteUpdate option with no access to `this`
+  // onBeforeRouteUpdate(async (to, from) => {
+    // only fetch the user if the id changed as maybe only the query or the hash changed
+    // if (to.params.qid !== from.params.qid) {
 
-// same as beforeRouteUpdate option with no access to `this`
-onBeforeRouteUpdate(async (to, from) => {
-  console.log('currentQuestionId.value', currentQuestionId.value)
-  // only fetch the user if the id changed as maybe only the query or the hash changed
-  if (to.params.id !== from.params.id) {
-    currentQuestionId.value = +to.params.id
-    // questionData.value = await fetchQuestion(to.params.id)
-  }
-})
+    // }
+  // })
 </script>
