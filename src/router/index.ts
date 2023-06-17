@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-export default createRouter({
+const routers = createRouter({
   history: createWebHistory(),
   routes: [
     {
@@ -9,9 +9,9 @@ export default createRouter({
       component: () => import('@/views/Home.vue'),
     },
     {
-      path: '/introduction:tid?',
-      name: 'introduction',
-      component: () => import('@/views/Introduction.vue'),
+      path: '/instructions:tid?',
+      name: 'instructions',
+      component: () => import('@/views/Instructions.vue'),
     },
     {
       path: '/question:tid?:qid?',
@@ -28,3 +28,5 @@ export default createRouter({
     },
   ],
 })
+
+export default routers

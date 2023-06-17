@@ -27,7 +27,7 @@ export default <Partial<Config>>{
         header: 'sweetAloha',
       },
       fontSize: {
-        xs: '0.8em',
+        xs: '0.9em',
         sm: '1em',
         lg: '1.25em',
         xl: '1.55em',
