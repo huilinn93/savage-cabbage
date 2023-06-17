@@ -25,7 +25,6 @@
           ? { path: '/instructions', query: { tid: teamIdRef } }
           : { path: '/question', query: { tid: teamIdRef, qid: teamProgressRef } }
       "
-      class="w-full"
     >
       <button @click="login" :disabled="!teamIdRef">Login</button>
     </router-link>
