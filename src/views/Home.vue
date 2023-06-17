@@ -18,18 +18,18 @@
       v-model="descriptionRef"
     />
   </div>
-  <div class="w-1/2 m-auto">
+  <div class="w-full m-auto flex flex-col">
     <router-link
       :to="
         teamProgressRef === 0
-          ? { path: '/introduction', query: { tid: teamIdRef } }
+          ? { path: '/instructions', query: { tid: teamIdRef } }
           : { path: '/question', query: { tid: teamIdRef, qid: teamProgressRef } }
       "
       class="w-full"
     >
       <button @click="login" :disabled="!teamIdRef">Login</button>
     </router-link>
-    <router-link :to="{ path: '/introduction', query: { tid: teamIdRef } }">
+    <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
       <button>Instructions</button>
     </router-link>
   </div>
@@ -53,7 +53,7 @@
 
   const teamIdRef = ref('')
   const teamProgressRef = ref(0)
-  const teamDescPlaceholderRef = ref('the most awesome table ever')
+  const teamDescPlaceholderRef = ref('rewrite me')
   const descriptionRef = ref('')
 
   const totalTeams = Array.from({ length: 30 }, (_, i) => i + 1)
@@ -85,7 +85,6 @@
       descriptionRef.value = teamDescPlaceholderRef.value
     }
 
-    store.dispatch('setCurrentTeam', {teamId: teamIdRef.value, teamData: teams.value[teamIdRef.value]})
     createOrUpdateTeam()
   }
 </script>
