@@ -1,7 +1,5 @@
 <template>
-  <h1 class="text-grey font-header text-xxl my-auto">
-    Scavenger Hunt
-  </h1>
+  <h1 class="text-grey font-header text-xxl my-auto">Scavenger Hunt</h1>
   <div class="uppercase my-auto">
     table
     <select id="teams" class="p-1 font-serif" v-model="teamIdRef">
@@ -23,10 +21,13 @@
       :to="
         teamProgressRef === 0
           ? { path: '/instructions', query: { tid: teamIdRef } }
-          : { path: '/question', query: { tid: teamIdRef, qid: teamProgressRef } }
+          : {
+              path: '/question',
+              query: { tid: teamIdRef, qid: teamProgressRef },
+            }
       "
     >
-      <button @click="login" :disabled="!teamIdRef">Login</button>
+      <button @click="login" :disabled="disableLogin">Login</button>
     </router-link>
     <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
       <button>Instructions</button>
@@ -49,6 +50,9 @@
   import { useStore } from 'vuex'
 
   import { Team } from '../types'
+
+  import questionBank from '../data/QuestionBank'
+  const MAX_QUESTIONS = questionBank.length
 
   const teamIdRef = ref('')
   const teamProgressRef = ref(0)
@@ -85,5 +89,12 @@
     }
 
     createOrUpdateTeam()
+  }
+
+  const disableLogin = () => {
+    const team = teams.value[teamIdRef.value] as Team
+
+    if (!teamIdRef || Object.keys(team.questions).length === MAX_QUESTIONS)
+      return true
   }
 </script>

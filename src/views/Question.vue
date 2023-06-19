@@ -38,7 +38,7 @@
         Next Clue!
       </button>
     </router-link>
-    <button v-else @click="router.push('/instructions')" class="w-full">
+    <button v-else @click="router.push('/instructions')">
       End Hunt!
     </button>
   </div>
