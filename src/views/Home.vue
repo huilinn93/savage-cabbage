@@ -27,7 +27,7 @@
             }
       "
     >
-      <button @click="login" :disabled="disableLogin">Login</button>
+      <button @click="login" :disabled="disabledLoginRef">Login</button>
     </router-link>
     <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
       <button>Instructions</button>
@@ -58,6 +58,7 @@
   const teamProgressRef = ref(0)
   const teamDescPlaceholderRef = ref('rewrite me')
   const descriptionRef = ref('')
+  const disabledLoginRef = ref(true)
 
   const totalTeams = Array.from({ length: 30 }, (_, i) => i + 1)
 
@@ -72,8 +73,13 @@
     teamDescPlaceholderRef.value = team.description
 
     if (team.questions) {
+      if (Object.keys(team.questions).length === MAX_QUESTIONS) {
+        return disabledLoginRef.value = true
+      }
       teamProgressRef.value = Object.keys(team.questions).length + 1
     }
+
+    return disabledLoginRef.value = false
   })
 
   const createOrUpdateTeam = () => {
@@ -89,12 +95,5 @@
     }
 
     createOrUpdateTeam()
-  }
-
-  const disableLogin = () => {
-    const team = teams.value[teamIdRef.value] as Team
-
-    if (!teamIdRef || Object.keys(team.questions).length === MAX_QUESTIONS)
-      return true
   }
 </script>

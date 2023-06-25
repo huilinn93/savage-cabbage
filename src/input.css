@@ -35,7 +35,7 @@
 
 @layer components {
   button {
-    @apply bg-beige rounded-lg p-2 text-champagne my-1 w-1/2 disabled:opacity-40
+    @apply bg-beige rounded-lg p-2 text-champagne my-1 w-full disabled:opacity-40
   }
   h1 {
     @apply font-serif text-grey text-xl leading-10 uppercase
