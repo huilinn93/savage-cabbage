@@ -27,7 +27,7 @@
   const teams = computed(() => store.getters.getTeams)
   const teamProgress = computed(() =>
     teams?.value[teamId]?.questions
-      ? Object.keys(teams.value[teamId].questions).length
+      ? Object.keys(teams.value[teamId].questions).length + 1
       : 1
   )
 </script>
