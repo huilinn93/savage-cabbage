@@ -10,7 +10,7 @@
     v-if="!!teams && !!teamId && !!getCurrentTeam"
     :to="{ path: '/question', query: { tid: teamId, qid: teamProgress } }"
   >
-    <button class="w-1/2">Continue Hunt!</button>
+    <button class="w-1/2">{{teamProgress === 1 ? 'Begin' : 'Continue'}} Hunt!</button>
   </router-link>
 </template>
 
