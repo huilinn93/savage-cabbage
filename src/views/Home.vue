@@ -66,11 +66,11 @@
   const teams = computed(() => store.getters.getTeams)
 
   watch(teamIdRef, (currentValue: string) => {
+    disabledLoginRef.value = false
+
     if (!teams.value) {
       return createOrUpdateTeam()
     }
-
-    disabledLoginRef.value = false
 
     const team: Team = teams.value[currentValue]
 
