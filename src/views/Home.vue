@@ -70,6 +70,8 @@
       return createOrUpdateTeam()
     }
 
+    disabledLoginRef.value = false
+
     const team: Team = teams.value[currentValue]
 
     if (!team) return
@@ -82,14 +84,13 @@
       }
       teamProgressRef.value = Object.keys(team.questions).length + 1
     }
-
-    return (disabledLoginRef.value = false)
   })
 
   const createOrUpdateTeam = () => {
     fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
       description: descriptionRef.value,
     })
+
   }
 
   const login = () => {
