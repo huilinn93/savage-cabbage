@@ -118,8 +118,8 @@
   const justUploadedRef = ref(true)
   const uploadImage = () => {
     if (
-      (getTeams.value[teamId] as Team).questions &&
-      (getTeams.value[teamId] as Team).questions[`q${currentQuestionId}`]
+      (getTeams.value[`t${teamId}`] as Team).questions &&
+      (getTeams.value[`t${teamId}`] as Team).questions[`q${currentQuestionId}`]
     ) {
       const replaceExistingSubmission = window.confirm(
         'Replace existing submission?'
