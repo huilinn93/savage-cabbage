@@ -4,9 +4,17 @@
     <h1 class="text-header">{{ questionBank[currentQuestionIdRef - 1] }}</h1>
   </div>
   <div class="flex flex-col">
-    <div v-if="justUploadedRef">Choose an Image</div>
-    <div v-else>Uploaded; Replace Image?</div>
-    <input type="file" @change="uploadFile" ref="file" />
+    <div>
+      {{
+        hasExistingImageRef() ? 'Uploaded; Replace Image?' : 'Choose an Image'
+      }}
+    </div>
+    <input
+      type="file"
+      @change="uploadFile"
+      ref="uploadFileRef"
+      accept="image/jpeg, image/png"
+    />
     <button
       @click="uploadImage()"
       :disabled="disableUploadRef"
@@ -57,20 +65,13 @@
     >
       Next Clue!
     </button>
-    <button
-      v-else
-      @click="
-        router.push('/endHunt')
-      "
-    >
-      End Hunt!
-    </button>
+    <button v-else @click="router.push('/endHunt')">End Hunt!</button>
   </div>
 </template>
 
 <script setup lang="ts">
   import { useRoute, useRouter } from 'vue-router'
-  import { Ref, computed, ref } from 'vue'
+  import { Ref, computed, onBeforeMount, onMounted, ref } from 'vue'
   import { useStore } from 'vuex'
   import questionBank from '../data/QuestionBank'
 
@@ -92,14 +93,19 @@
   const MAX_QUESTIONS = questionBank.length
 
   const store = useStore()
-  const getTeams = computed(() => store.getters.getTeams)
-  const getCurrentTeam = computed(() => store.getters.getCurrentTeam)
-
   const route = useRoute()
   const teamId = route.query.tid as string
   const currentQuestionId: number = parseInt(route.query.qid as string)
   const currentQuestionIdRef = ref(currentQuestionId)
+  const hasExistingImageRef = () => {
+    const getTeams = computed(() => store.getters.getTeams)
 
+    return Object.keys((getTeams.value[teamId] as Team).questions).includes(
+      `q${currentQuestionIdRef.value}`
+    )
+  }
+
+  const getCurrentTeam = computed(() => store.getters.getCurrentTeam)
   const router = useRouter()
   if (getCurrentTeam.value.toString() !== teamId) {
     router.push('/goHomeToLogin')
@@ -111,23 +117,22 @@
   const uploadFile = (payload: Event) => {
     if (!payload.target || !(payload.target as HTMLInputElement).files) return
 
-    uploadFileRef.value = (payload.target as HTMLInputElement).files![0]
-    return (disableUploadRef.value = false)
-  }
-
-  const justUploadedRef = ref(true)
-  const uploadImage = () => {
-    if (
-      (getTeams.value[`t${teamId}`] as Team).questions &&
-      (getTeams.value[`t${teamId}`] as Team).questions[`q${currentQuestionId}`]
-    ) {
+    if (hasExistingImageRef()) {
       const replaceExistingSubmission = window.confirm(
         'Replace existing submission?'
       )
 
-      if (!replaceExistingSubmission) return
+      if (!replaceExistingSubmission) {
+        return (uploadFileRef.value = undefined)
+      }
     }
 
+    uploadFileRef.value = (payload.target as HTMLInputElement).files![0]
+
+    return (disableUploadRef.value = false)
+  }
+
+  const uploadImage = () => {
     const teamQuestionStoragePath = fbStorageRef(
       firebaseStorage,
       `/t${teamId}/q${currentQuestionId}`
@@ -147,9 +152,9 @@
           )
         }
       )
-
-    return (justUploadedRef.value = false)
   }
   const hasPrevQuestion = computed(() => currentQuestionIdRef.value - 1 > 0)
-  const hasNextQuestion = computed(() => currentQuestionIdRef.value < MAX_QUESTIONS)
+  const hasNextQuestion = computed(
+    () => currentQuestionIdRef.value < MAX_QUESTIONS
+  )
 </script>

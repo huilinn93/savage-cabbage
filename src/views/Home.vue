@@ -27,10 +27,10 @@
             }
       "
     >
-      <button @click="login" :disabled="disabledLoginRef">Login</button>
+      <button @click="login" :disabled="disabledLoginRef" class="w-full">Login</button>
     </router-link>
     <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
-      <button @click="login">Instructions</button>
+      <button @click="login" class="w-full">Instructions</button>
     </router-link>
   </div>
 </template>
