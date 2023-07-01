@@ -30,7 +30,7 @@
       <button @click="login" :disabled="disabledLoginRef">Login</button>
     </router-link>
     <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
-      <button>Instructions</button>
+      <button @click="login">Instructions</button>
     </router-link>
   </div>
 </template>
@@ -66,6 +66,10 @@
   const teams = computed(() => store.getters.getTeams)
 
   watch(teamIdRef, (currentValue: string) => {
+    if (!teams.value) {
+      return createOrUpdateTeam()
+    }
+
     const team: Team = teams.value[currentValue]
 
     if (!team) return
@@ -74,12 +78,12 @@
 
     if (team.questions) {
       if (Object.keys(team.questions).length === MAX_QUESTIONS) {
-        return disabledLoginRef.value = true
+        return (disabledLoginRef.value = true)
       }
       teamProgressRef.value = Object.keys(team.questions).length + 1
     }
 
-    return disabledLoginRef.value = false
+    return (disabledLoginRef.value = false)
   })
 
   const createOrUpdateTeam = () => {
@@ -93,7 +97,7 @@
     if (!descriptionRef.value) {
       descriptionRef.value = teamDescPlaceholderRef.value
     }
-
     createOrUpdateTeam()
+    store.dispatch('setCurrentTeam', { teamId: teamIdRef.value })
   }
 </script>

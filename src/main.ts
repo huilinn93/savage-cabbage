@@ -17,12 +17,11 @@ const store = createStore({
     teams: {} as {[key: string]: Team},
     currentTeam: {
       id: '',
-      data: {} as Team,
     },
   },
   getters: {
     getTeams: state => state.teams,
-    getCurrentTeam: state => state.currentTeam,
+    getCurrentTeam: state => state.currentTeam.id,
   },
   actions: {
     fetchTeams({ commit }) {
@@ -41,9 +40,8 @@ const store = createStore({
     fetchTeams(state, teams) {
       state.teams = teams
     },
-    setCurrentTeam(state, currentTeam: {teamId: string, teamData: Team}) {
+    setCurrentTeam(state, currentTeam: { teamId: string }) {
       state.currentTeam.id = currentTeam.teamId
-      state.currentTeam.data = currentTeam.teamData
     },
   }
 })

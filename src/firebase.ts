@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHRVM1W0NRXzCtSJqDqKitCApSc-qiIbc",
@@ -9,5 +10,7 @@ const firebaseConfig = {
   messagingSenderId: "551884871555",
   appId: "1:551884871555:web:610a4ead6a8a1d172688b6"
 }
+const firebaseApp = initializeApp(firebaseConfig);
+const firebaseStorage = getStorage(firebaseApp);
 
-export const firebaseApp = initializeApp(firebaseConfig);
+export { firebaseApp, firebaseStorage }

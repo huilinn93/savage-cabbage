@@ -7,13 +7,10 @@
     <li>Team with most likes from judges takes the win.</li>
   </ol>
   <router-link
-    v-if="teamId && teamProgress"
+    v-if="!!teams && !!teamId && !!getCurrentTeam"
     :to="{ path: '/question', query: { tid: teamId, qid: teamProgress } }"
   >
     <button class="w-1/2">Continue Hunt!</button>
-  </router-link>
-  <router-link v-else to="/">
-    <button class="w-1/2">Login</button>
   </router-link>
 </template>
 
@@ -26,13 +23,11 @@
   const teamId = route.query.tid as string
 
   const store = useStore()
+  const getCurrentTeam = computed(() => store.getters.getCurrentTeam)
   const teams = computed(() => store.getters.getTeams)
-
-  const teamProgress = computed(() => {
-    if (!teams.value[teamId]) return false
-
-    return teams.value[teamId].questions
-      ? teams.value[teamId].questions.length
+  const teamProgress = computed(() =>
+    teams?.value[teamId]?.questions
+      ? Object.keys(teams.value[teamId].questions).length
       : 1
-  })
+  )
 </script>
