@@ -1,6 +1,6 @@
 <template>
   <router-view />
-  <div v-if="route.name !== 'home'">
+  <div v-if="route.name !== 'home'" class="font-sans">
     Go
     <router-link :to="{ path: '/' }" class="underline">Home</router-link>.
   </div>

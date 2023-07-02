@@ -23,15 +23,16 @@ export default <Partial<Config>>{
       },
       fontFamily: {
         sans: 'caviarDreams',
+        sansBold: 'caviarDreamsBold',
         serif: 'playfair',
         header: 'sweetAloha',
       },
       fontSize: {
-        xs: '0.9em',
-        sm: '1em',
-        lg: '1.25em',
-        xl: '1.55em',
-        xxl: '2.2em'
+        xs: '0.9rem',
+        sm: '1rem',
+        lg: '1.25rem',
+        xl: '1.55rem',
+        xxl: '2.5rem'
       },
     }
   },

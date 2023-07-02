@@ -16,7 +16,7 @@ const store = createStore({
   state: {
     teams: {} as {[key: string]: Team},
     currentTeam: {
-      id: '',
+      id: undefined as unknown as number,
     },
   },
   getters: {
@@ -32,7 +32,7 @@ const store = createStore({
         commit('fetchTeams', teams[0])
       })
     },
-    setCurrentTeam({ commit }, teamId) {
+    setCurrentTeam({ commit }, teamId: number) {
       commit('setCurrentTeam', teamId)
     }
   },
@@ -40,7 +40,7 @@ const store = createStore({
     fetchTeams(state, teams) {
       state.teams = teams
     },
-    setCurrentTeam(state, currentTeam: { teamId: string }) {
+    setCurrentTeam(state, currentTeam: { teamId: number }) {
       state.currentTeam.id = currentTeam.teamId
     },
   }

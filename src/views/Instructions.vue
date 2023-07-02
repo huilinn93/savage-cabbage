@@ -1,6 +1,6 @@
 <template>
   <h1>instructions</h1>
-  <ol class="text-justify text-xs space-y-2 list-decimal list-inside">
+  <ol class="text-justify text-s space-y-2 list-decimal list-inside font-sans">
     <li>Appoint a dedicated hunter (photographer + phone).</li>
     <li>Snap a photo to solve each given clue.</li>
     <li>First three teams to complete gets into the Brawling Round.</li>
@@ -22,7 +22,7 @@
   import { useRoute } from 'vue-router'
 
   const route = useRoute()
-  const teamId = route.query.tid as string
+  const teamId: number = parseInt(route.query.tid as string)
 
   const store = useStore()
   const getCurrentTeam = computed(() => store.getters.getCurrentTeam)
