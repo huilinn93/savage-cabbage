@@ -11,7 +11,14 @@
       accept="image/jpeg, image/png"
       class="hidden"
     />
+    <MoonLoader
+      v-if="isLoadingRef"
+      :loading="isLoadingRef"
+      color="#3F474F"
+      class="mx-auto"
+    />
     <label
+      v-else
       :disabled="disableSubmitRef"
       class="w-2/3 mx-auto bg-champagne rounded-lg p-2 my-1 shadow"
       for="selectFileInput"
@@ -20,7 +27,6 @@
         computedSelectFileRef ? 'Selected' : 'Select'
       }}</span>
     </label>
-    <div v-show="true"></div>
     <button
       @click="onSubmitImage()"
       :disabled="disableSubmitRef"
@@ -60,9 +66,10 @@
 <script setup lang="ts">
   import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
   import { ComputedRef, Ref, computed, ref } from 'vue'
+  import { MoonLoader } from 'vue3-spinner'
   import { useStore } from 'vuex'
 
-  const isLoading = ref(false)
+  const isLoadingRef = ref(false)
 
   import questionBank from '../data/QuestionBank'
 
@@ -106,7 +113,8 @@
   )
   const router = useRouter()
   if (getCurrentTeam.value !== teamId) {
-    router.push('/goHomeToLogin')
+    window.alert('Pls log in first.')
+    router.push('/')
   }
 
   const selectFileRef: Ref<File | undefined> = ref()
@@ -123,7 +131,11 @@
   const disableSubmitRef = ref(true)
 
   const selectFile = (payload: Event) => {
-    if (!payload.target || !(payload.target as HTMLInputElement).files) {
+    if ((payload.target as HTMLInputElement)?.files?.length === 0) {
+      if (!computedSelectFileRef.value && !selectFileRef.value) {
+        return disableSubmitRef.value = true
+      }
+
       return
     }
 
@@ -136,18 +148,23 @@
   const onSubmitImage = async () => {
     if (!computedSelectFileRef.value) return
 
+    disableSubmitRef.value = true
+    isLoadingRef.value = true
+
     if (hasExistingImageRef()) {
       const replaceExistingSubmission = window.confirm(
         'Replace existing submission?'
       )
 
       if (!replaceExistingSubmission) {
-        return (computedSelectFileRef.value = undefined)
+        disableSubmitRef.value = false
+        isLoadingRef.value = false
+
+        return
       }
     }
 
     const reader = new FileReader()
-
     reader.readAsDataURL(computedSelectFileRef.value)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(
@@ -174,6 +191,10 @@
         window.alert('Upload successful!')
       } catch {
         window.alert('Upload failed; Pls try again.')
+      } finally {
+        disableSubmitRef.value = false
+        isLoadingRef.value = false
+        computedSelectFileRef.value = undefined
       }
     }
   }
@@ -182,19 +203,6 @@
   const hasNextQuestion = computed(
     () => currentQuestionIdRef.value < MAX_QUESTIONS
   )
-
-  onBeforeRouteUpdate((to, from) => {
-    selectFileRef.value = undefined
-
-    if (
-      !from.query.tid ||
-      !from.query.qid ||
-      (from.query.qid &&
-        currentQuestionIdRef.value !== parseInt(to.query.qid as string))
-    ) {
-      return router.push('/')
-    }
-  })
 
   const navigateQuestion = (navigation: string) => {
     switch (navigation) {
@@ -213,4 +221,19 @@
       },
     })
   }
+
+  onBeforeRouteUpdate((to, from) => {
+    selectFileRef.value = undefined
+    computedSelectFileRef.value = undefined
+    disableSubmitRef.value = true
+
+    if (
+      !from.query.tid ||
+      !from.query.qid ||
+      (from.query.qid &&
+        currentQuestionIdRef.value !== parseInt(to.query.qid as string))
+    ) {
+      return router.push('/')
+    }
+  })
 </script>
