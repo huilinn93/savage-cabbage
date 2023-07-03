@@ -5,25 +5,32 @@
   </div>
   <div class="flex flex-col">
     <input
-      id="fileUploadInput"
+      id="selectFileInput"
       type="file"
-      @change="uploadFile"
+      @change="selectFile"
       accept="image/jpeg, image/png"
       class="hidden"
     />
     <label
-      :disabled="disableUploadRef"
+      :disabled="disableSubmitRef"
       class="w-2/3 mx-auto bg-champagne rounded-lg p-2 my-1 shadow"
-      for="fileUploadInput"
+      for="selectFileInput"
     >
-      <img :src="cameraSvg" class="max-h-7 m-auto" /><span> Upload </span>
+      <img :src="cameraSvg" class="max-h-7 m-auto" /><span>{{
+        computedSelectFileRef ? 'Selected' : 'Select'
+      }}</span>
     </label>
+    <div v-show="true"></div>
     <button
-      @click="uploadImage()"
-      :disabled="disableUploadRef"
+      @click="onSubmitImage()"
+      :disabled="disableSubmitRef"
       class="w-2/3 mx-auto bg-green"
     >
-      <img :src="uploadSvg" class="max-h-7 m-auto" /><span> Submit </span>
+      <img :src="uploadSvg" class="max-h-7 m-auto" /><span
+        class="capitalize text-sm"
+      >
+        Submit
+      </span>
     </button>
   </div>
   <div class="justify-between flex flex-row">
@@ -51,9 +58,11 @@
 </template>
 
 <script setup lang="ts">
-  import { useRoute, useRouter } from 'vue-router'
+  import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
   import { ComputedRef, Ref, computed, ref } from 'vue'
   import { useStore } from 'vuex'
+
+  const isLoading = ref(false)
 
   import questionBank from '../data/QuestionBank'
 
@@ -100,19 +109,32 @@
     router.push('/goHomeToLogin')
   }
 
-  const uploadFileRef: Ref<File | undefined> = ref()
+  const selectFileRef: Ref<File | undefined> = ref()
+  const computedSelectFileRef = computed({
+    get() {
+      return selectFileRef.value
+    },
+    set(newValue) {
+      selectFileRef.value = newValue
+        ? (selectFileRef.value = newValue)
+        : selectFileRef.value
+    },
+  })
+  const disableSubmitRef = ref(true)
 
-  const disableUploadRef = ref(true)
-  const uploadFile = (payload: Event) => {
-    if (!payload.target || !(payload.target as HTMLInputElement).files) return
+  const selectFile = (payload: Event) => {
+    if (!payload.target || !(payload.target as HTMLInputElement).files) {
+      return
+    }
 
-    uploadFileRef.value = (payload.target as HTMLInputElement).files![0] as File
+    computedSelectFileRef.value = (payload.target as HTMLInputElement)
+      .files![0] as File
 
-    return (disableUploadRef.value = false)
+    return (disableSubmitRef.value = false)
   }
 
-  const uploadImage = async () => {
-    if (!uploadFileRef.value) return
+  const onSubmitImage = async () => {
+    if (!computedSelectFileRef.value) return
 
     if (hasExistingImageRef()) {
       const replaceExistingSubmission = window.confirm(
@@ -120,13 +142,13 @@
       )
 
       if (!replaceExistingSubmission) {
-        return (uploadFileRef.value = undefined)
+        return (computedSelectFileRef.value = undefined)
       }
     }
 
     const reader = new FileReader()
 
-    reader.readAsDataURL(uploadFileRef.value)
+    reader.readAsDataURL(computedSelectFileRef.value)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(
         firebaseStorage,
@@ -136,7 +158,7 @@
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
-          uploadFileRef.value as File
+          computedSelectFileRef.value as File
         )
 
         await fbUpdate(
@@ -160,6 +182,19 @@
   const hasNextQuestion = computed(
     () => currentQuestionIdRef.value < MAX_QUESTIONS
   )
+
+  onBeforeRouteUpdate((to, from) => {
+    selectFileRef.value = undefined
+
+    if (
+      !from.query.tid ||
+      !from.query.qid ||
+      (from.query.qid &&
+        currentQuestionIdRef.value !== parseInt(to.query.qid as string))
+    ) {
+      return router.push('/')
+    }
+  })
 
   const navigateQuestion = (navigation: string) => {
     switch (navigation) {

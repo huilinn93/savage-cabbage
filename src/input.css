@@ -25,10 +25,8 @@
 
 
 :root, html {
-  background-image: url(/src/assets/images/DefaultBackground.png);
-  background-size: 100vw 100vh;
+  background-image: url(/src/assets/images/Background.png);
   background-size: cover;
-  height: 100vh;
   font-family: 'caviarDreamsBold';
   font-size: 20px;
   color: #3F474F;
@@ -40,7 +38,7 @@
 
 @layer components {
   button {
-    @apply bg-beige rounded-lg p-2 text-champagne my-1 disabled:opacity-40 shadow
+    @apply bg-beige rounded-lg p-2 text-champagne text-xs my-1 disabled:opacity-40 shadow uppercase
   }
   h1 {
     @apply font-serif text-grey text-xl leading-10 uppercase

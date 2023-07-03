@@ -1,6 +1,7 @@
 <template>
-  <h1 class="text-grey font-header text-xxl my-auto">Scavenger Hunt</h1>
-  <div class="uppercase my-auto font-sans">
+  <h1 class="text-grey font-header text-xxl">Scavenger Hunt</h1>
+  <MoonLoader :loading="isLoadingRef" color="#3F474F" class="mx-auto" />
+  <div class="font-sans">
     table
     <select
       id="teams"
@@ -14,44 +15,38 @@
     ,
     <div class="pt-2">also known as</div>
     <textarea
+      name="description"
       type="text"
-      class="p-3 font-serif italic w-2/3 opacity-80 rounded-lg"
+      class="p-3 font-serif italic opacity-80 rounded-lg"
       :placeholder="teamDescPlaceholderRef"
       v-model="descriptionRef"
       maxlength="40"
     />
   </div>
-  <div class="w-1/2 m-auto flex flex-col">
-    <router-link
-      :to="
-        teamProgressRef === 0
-          ? { path: '/instructions', query: { tid: teamIdRef } }
-          : {
-              path: '/question',
-              query: { tid: teamIdRef, qid: teamProgressRef },
-            }
-      "
-    >
-      <button @click="login" :disabled="disabledLoginRef" class="w-full">
-        Login
-      </button>
-    </router-link>
-    <router-link :to="{ path: '/instructions', query: { tid: teamIdRef } }">
-      <button @click="login" class="w-full">Instructions</button>
-    </router-link>
+  <div class="flex flex-col">
+    <button @click="login()" :disabled="disabledLoginRef" class="w-full">
+      Login
+    </button>
+    <button @click="login('instructions')" class="w-full">Instructions</button>
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref, watch } from 'vue'
+  import { MoonLoader } from 'vue3-spinner'
+
+  const isLoadingRef = ref(false)
+
   import {
     getDatabase,
     ref as fbRef,
     update as fbUpdate,
   } from 'firebase/database'
-  import { firebaseApp } from '../firebase'
+  import { firebaseApp, firebaseStorage } from '../firebase'
 
   const fbDatabase = getDatabase(firebaseApp)
+
+  import { ref as fbStorageRef, list as fbStorageList } from 'firebase/storage'
 
   import { computed } from 'vue'
   import { useStore } from 'vuex'
@@ -72,12 +67,13 @@
   const store = useStore()
   const teams = computed(() => store.getters.getTeams)
 
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
+  const router = useRouter()
 
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
   store.dispatch('setCurrentTeam', { teamId: teamId })
-  
+
   watch(teamIdRef, (currentValue: number) => {
     disabledLoginRef.value = false
 
@@ -91,23 +87,37 @@
 
     teamDescPlaceholderRef.value = team.description
 
-    if (team.questions) {
-      if (Object.keys(team.questions).length === MAX_QUESTIONS) {
+    const teamSubmissionStoragePath = fbStorageRef(
+      firebaseStorage,
+      `/t${currentValue}`
+    )
+
+    fbStorageList(teamSubmissionStoragePath).then((fetchTeamImages) => {
+      if (fetchTeamImages.items.length === MAX_QUESTIONS) {
         return (disabledLoginRef.value = true)
       }
+    })
 
-      teamProgressRef.value = Object.keys(team.questions).length + 1
-    }
+    teamProgressRef.value =
+      team.questions && Object.keys(team.questions)
+        ? Object.keys(team.questions).length + 1
+        : 1
   })
 
-  const createOrUpdateTeam = () => {
-    fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
+  const createOrUpdateTeam = async () => {
+    await fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
       description: descriptionRef.value,
     })
+
+    isLoadingRef.value = false
   }
 
-  const login = () => {
-    if (!teamIdRef.value) return
+  const login = async (page?: string) => {
+    isLoadingRef.value = true
+
+    if (page !== 'instructions') {
+      if (!teamIdRef.value) return (isLoadingRef.value = false)
+    }
 
     if (!descriptionRef.value) {
       descriptionRef.value = teamDescPlaceholderRef.value
@@ -115,6 +125,15 @@
 
     createOrUpdateTeam()
 
-    store.dispatch('setCurrentTeam', { teamId: teamIdRef.value })
+    await store.dispatch('setCurrentTeam', { teamId: teamIdRef.value })
+
+    teamProgressRef.value < 2 || page === 'instructions'
+      ? router.push({ path: '/instructions', query: { tid: teamIdRef.value } })
+      : router.push({
+          path: '/question',
+          query: { tid: teamIdRef.value, qid: teamProgressRef.value },
+        })
+
+    isLoadingRef.value = false
   }
 </script>

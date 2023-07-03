@@ -1,3 +1,4 @@
 <template>
-  <h1>Look where you're going!</h1>
+  <h1>Oopsie Daisies!</h1>
+  {{`Stop testing us out >(`}}
 </template>

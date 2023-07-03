@@ -5,7 +5,11 @@ import './input.css'
 import App from './App.vue'
 import router from './router'
 import { firebaseApp } from './firebase'
-import { getDatabase, ref as fbRef, onValue as fbOnValue } from 'firebase/database'
+import {
+  getDatabase,
+  ref as fbRef,
+  onValue as fbOnValue,
+} from 'firebase/database'
 import { Team } from './types'
 
 const fbDatabase = getDatabase(firebaseApp)
@@ -14,14 +18,14 @@ const teamsBankRef = fbRef(fbDatabase, 'teamsBank')
 // Create a new store instance.
 const store = createStore({
   state: {
-    teams: {} as {[key: string]: Team},
+    teams: {} as { [key: string]: Team },
     currentTeam: {
       id: undefined as unknown as number,
     },
   },
   getters: {
-    getTeams: state => state.teams,
-    getCurrentTeam: state => state.currentTeam.id,
+    getTeams: (state) => state.teams,
+    getCurrentTeam: (state) => state.currentTeam.id,
   },
   actions: {
     fetchTeams({ commit }) {
@@ -34,7 +38,7 @@ const store = createStore({
     },
     setCurrentTeam({ commit }, teamId: number) {
       commit('setCurrentTeam', teamId)
-    }
+    },
   },
   mutations: {
     fetchTeams(state, teams) {
@@ -43,14 +47,13 @@ const store = createStore({
     setCurrentTeam(state, currentTeam: { teamId: number }) {
       state.currentTeam.id = currentTeam.teamId
     },
-  }
+  },
 })
 
-store.dispatch('fetchTeams');
+store.dispatch('fetchTeams')
 
 const app = createApp(App)
-app.use(router).mount('#app')
 
-// Install the store instance as a plugin
-app.use(store)
+app.use(router).use(store)
 
+app.mount('#app')
