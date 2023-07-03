@@ -1,21 +1,32 @@
 <template>
   <div>
-    <h1 class="text-header italic text-sm">Hunt {{ currentQuestionIdRef }}</h1>
-    <h1 class="text-header">{{ questionBank[currentQuestionIdRef - 1] }}</h1>
+    <h1 class="text-header italic text-sm">Hunt {{ currentQuestionId }}</h1>
+    <h1 class="text-header">{{ questionBank[currentQuestionId - 1] }}</h1>
   </div>
+  <img
+    v-if="imageUrl && !isDownloadingRef"
+    :src="imageUrl"
+    class="h-1/4 object-scale-down"
+  />
+  <MoonLoader
+    v-if="isDownloadingRef"
+    :loading="isDownloadingRef"
+    color="#3F474F"
+    class="mx-auto h-1/4"
+  />
   <div class="flex flex-col">
     <input
       id="selectFileInput"
       type="file"
-      @change="selectFile"
+      @change="onSelectFile"
       accept="image/jpeg, image/png"
       class="hidden"
     />
     <MoonLoader
-      v-if="isLoadingRef"
-      :loading="isLoadingRef"
+      v-if="isSubmittingRef"
+      :loading="isSubmittingRef"
       color="#3F474F"
-      class="mx-auto"
+      class="mx-auto bg-champagne rounded-lg p-2 w-2/3 my-1 shadow"
     />
     <label
       v-else
@@ -40,7 +51,10 @@
     </button>
   </div>
   <div class="justify-between flex flex-row">
-    <button v-if="hasPrevQuestion" @click="navigateQuestion('previous')">
+    <button
+      v-if="currentQuestionId - 1 > 0"
+      @click="navigateQuestion('previous')"
+    >
       Prev Clue!
     </button>
     <button
@@ -56,7 +70,10 @@
     >
       Instructions
     </button>
-    <button v-if="hasNextQuestion" @click="navigateQuestion('next')">
+    <button
+      v-if="currentQuestionId < MAX_QUESTIONS"
+      @click="navigateQuestion('next')"
+    >
       Next Clue!
     </button>
     <button v-else @click="router.push('/endHunt')">End Hunt!</button>
@@ -65,11 +82,12 @@
 
 <script setup lang="ts">
   import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
-  import { ComputedRef, Ref, computed, ref } from 'vue'
+  import { ComputedRef, Ref, computed, ref, watch } from 'vue'
   import { MoonLoader } from 'vue3-spinner'
   import { useStore } from 'vuex'
 
-  const isLoadingRef = ref(false)
+  const isDownloadingRef = ref(false)
+  const isSubmittingRef = ref(false)
 
   import questionBank from '../data/QuestionBank'
 
@@ -82,9 +100,9 @@
   import {
     ref as fbStorageRef,
     uploadBytes as fbStorageUploadBytes,
+    getDownloadURL as fbStorageGetDownloadURL,
   } from 'firebase/storage'
 
-  import { Team } from '../types'
 
   import cameraSvg from '../assets/icons/camera.svg'
   import uploadSvg from '../assets/icons/upload.svg'
@@ -96,17 +114,40 @@
   const store = useStore()
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
-  const currentQuestionId: number = parseInt(route.query.qid as string)
-  const currentQuestionIdRef = ref(currentQuestionId)
-  const hasExistingImageRef = () => {
-    const getTeams = computed(() => store.getters.getTeams)
+  const currentQuestionId = ref(parseInt(route.query.qid as string))
 
-    if (!getTeams.value[teamId].questions) return false
+  const imageUrl = ref('')
 
-    return Object.keys((getTeams.value[teamId] as Team).questions).includes(
-      `q${currentQuestionIdRef.value}`
-    )
-  }
+  const fetchImage = async (qid: number) => {
+      const teamQuestionStoragePath = fbStorageRef(
+        firebaseStorage,
+        `/t${teamId}/q${qid}`
+      )
+      if (!teamQuestionStoragePath) return
+
+      try {
+        isDownloadingRef.value = true
+        const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
+
+        if (!url) return
+
+        imageUrl.value = url
+      } catch (error) {
+        return (imageUrl.value = '')
+      } finally {
+        isDownloadingRef.value = false
+      }
+    }
+
+    fetchImage(currentQuestionId.value)
+
+  watch(currentQuestionId, (newValue, currentValue) => {
+    selectFileRef.value = undefined
+    computedSelectFileRef.value = undefined
+    disableSubmitRef.value = true
+
+    fetchImage(newValue)
+  })
 
   const getCurrentTeam: ComputedRef<number> = computed(
     () => store.getters.getCurrentTeam
@@ -130,10 +171,10 @@
   })
   const disableSubmitRef = ref(true)
 
-  const selectFile = (payload: Event) => {
+  const onSelectFile = (payload: Event) => {
     if ((payload.target as HTMLInputElement)?.files?.length === 0) {
       if (!computedSelectFileRef.value && !selectFileRef.value) {
-        return disableSubmitRef.value = true
+        return (disableSubmitRef.value = true)
       }
 
       return
@@ -148,28 +189,22 @@
   const onSubmitImage = async () => {
     if (!computedSelectFileRef.value) return
 
-    disableSubmitRef.value = true
-    isLoadingRef.value = true
-
-    if (hasExistingImageRef()) {
+    if (imageUrl) {
       const replaceExistingSubmission = window.confirm(
         'Replace existing submission?'
       )
 
-      if (!replaceExistingSubmission) {
-        disableSubmitRef.value = false
-        isLoadingRef.value = false
-
-        return
-      }
+      if (!replaceExistingSubmission) return
     }
+    disableSubmitRef.value = true
+    isSubmittingRef.value = true
 
     const reader = new FileReader()
     reader.readAsDataURL(computedSelectFileRef.value)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(
         firebaseStorage,
-        `/t${teamId}/q${currentQuestionId}`
+        `/t${teamId}/q${currentQuestionId.value}`
       )
 
       try {
@@ -188,52 +223,36 @@
           }
         )
 
+        computedSelectFileRef.value = undefined
+        selectFileRef.value = undefined
+        fetchImage(currentQuestionId.value)
+
         window.alert('Upload successful!')
       } catch {
         window.alert('Upload failed; Pls try again.')
       } finally {
         disableSubmitRef.value = false
-        isLoadingRef.value = false
-        computedSelectFileRef.value = undefined
+        isSubmittingRef.value = false
       }
     }
   }
 
-  const hasPrevQuestion = computed(() => currentQuestionIdRef.value - 1 > 0)
-  const hasNextQuestion = computed(
-    () => currentQuestionIdRef.value < MAX_QUESTIONS
-  )
-
   const navigateQuestion = (navigation: string) => {
-    switch (navigation) {
-      case 'next':
-        currentQuestionIdRef.value += 1
-        break
-      case 'previous':
-        currentQuestionIdRef.value -= 1
-        break
-    }
+    navigation === 'next'
+      ? (currentQuestionId.value += 1)
+      : (currentQuestionId.value -= 1)
 
     router.push({
       query: {
         tid: teamId,
-        qid: currentQuestionIdRef.value,
+        qid: currentQuestionId.value,
       },
     })
   }
-
-  onBeforeRouteUpdate((to, from) => {
-    selectFileRef.value = undefined
-    computedSelectFileRef.value = undefined
-    disableSubmitRef.value = true
-
-    if (
-      !from.query.tid ||
-      !from.query.qid ||
-      (from.query.qid &&
-        currentQuestionIdRef.value !== parseInt(to.query.qid as string))
-    ) {
-      return router.push('/')
-    }
-  })
 </script>
+
+<style>
+  .v-spinner {
+    text-align: -webkit-center;
+  }
+</style>
