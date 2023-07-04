@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 
+import 'gitart-vue-dialog/dist/style.css'
+import { GDialog } from 'gitart-vue-dialog'
+
 import './input.css'
 import App from './App.vue'
 import router from './router'
@@ -55,5 +58,6 @@ store.dispatch('fetchTeams')
 const app = createApp(App)
 
 app.use(router).use(store)
+app.component('GDialog', GDialog)
 
 app.mount('#app')

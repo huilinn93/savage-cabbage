@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h1 class="text-header italic text-sm">Hunt {{ currentQuestionId }}</h1>
-    <h1 class="text-header">{{ questionBank[currentQuestionId - 1] }}</h1>
+    <h1 class="italic text-sm">Hunt {{ currentQuestionId }}</h1>
+    <h1>{{ questionBank[currentQuestionId - 1] }}</h1>
   </div>
   <img
     v-if="imageUrl && !isDownloadingRef"
@@ -34,7 +34,7 @@
       class="w-2/3 mx-auto bg-champagne rounded-lg p-2 my-1 shadow"
       for="selectFileInput"
     >
-      <img :src="cameraSvg" class="max-h-7 m-auto" /><span>{{
+      <img :src="cameraSvg" class="max-h-5 m-auto" /><span>{{
         computedSelectFileRef ? 'Selected' : 'Select'
       }}</span>
     </label>
@@ -43,36 +43,21 @@
       :disabled="disableSubmitRef"
       class="w-2/3 mx-auto bg-green"
     >
-      <img :src="uploadSvg" class="max-h-7 m-auto" /><span
-        class="capitalize text-sm"
-      >
-        Submit
-      </span>
+      <img :src="uploadSvg" class="max-h-5 m-auto capitalize" />Submit
     </button>
   </div>
   <div class="justify-between flex flex-row">
     <button
       v-if="currentQuestionId - 1 > 0"
       @click="navigateQuestion('previous')"
+      class="mr-auto"
     >
       Prev Clue!
     </button>
     <button
-      v-else
-      @click="
-        router.push({
-          path: '/instructions',
-          query: {
-            tid: teamId,
-          },
-        })
-      "
-    >
-      Instructions
-    </button>
-    <button
       v-if="currentQuestionId < MAX_QUESTIONS"
       @click="navigateQuestion('next')"
+      class="ml-auto"
     >
       Next Clue!
     </button>

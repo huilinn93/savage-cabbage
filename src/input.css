@@ -41,7 +41,7 @@
     @apply bg-beige rounded-lg p-2 text-champagne text-xs my-1 disabled:opacity-40 shadow uppercase
   }
   h1 {
-    @apply font-serif text-grey text-xl leading-10 uppercase
+    @apply font-serif text-grey text-lg leading-10 uppercase
   }
   router-link {
     @apply mx-auto w-full

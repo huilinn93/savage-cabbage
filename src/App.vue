@@ -4,11 +4,8 @@
     v-if="route.name !== 'home'"
     :to="{ path: '/' }"
     class="underline align-middle"
-    ><img :src="homeSvg" class="max-h-7 m-auto" /><span>
-      Home
-    </span>
-    </router-link
-  >
+    ><img :src="homeSvg" class="max-h-5 m-auto" />Home
+  </router-link>
 </template>
 
 <script setup lang="ts">

@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-grey font-header text-xxl">Scavenger Hunt</h1>
+  <h1 class="text-grey font-header text-xxl mt-16">Scavenger Hunt</h1>
   <MoonLoader :loading="isLoadingRef" color="#3F474F" class="mx-auto" />
   <div class="font-sans">
     table
@@ -23,17 +23,22 @@
       maxlength="40"
     />
   </div>
-  <div class="flex flex-col">
+  <div class="flex flex-col my-16">
     <button @click="login()" :disabled="disabledLoginRef" class="w-full">
       Login
     </button>
-    <button @click="login('instructions')" class="w-full">Instructions</button>
+    <button @click="() => isInstructionsModalOpen = true" class="w-full">Instructions</button>
+    <Modal :dialogState="isInstructionsModalOpen">
+      <Instructions  @showModal="isInstructionsModalOpen = false" />
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref, watch } from 'vue'
   import { MoonLoader } from 'vue3-spinner'
+  import Modal from '../components/Modal.vue'
+  import Instructions from './Instructions.vue'
 
   const isLoadingRef = ref(false)
 
@@ -136,4 +141,6 @@
 
     isLoadingRef.value = false
   }
+
+const isInstructionsModalOpen = ref(false)
 </script>

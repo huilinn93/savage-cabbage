@@ -1,4 +1,7 @@
-<template>Main Screen</template>
+<template>
+  Main Screen (in progress)
+  <img :src="imageUrl" class="h-1/2 object-scale-down" />
+</template>
 
 <script setup lang="ts">
   import { firebaseApp, firebaseStorage } from '../firebase'
@@ -11,31 +14,22 @@
     ref as fbStorageRef,
     uploadBytes as fbStorageUploadBytes,
     list as fbStorageList,
+    getDownloadURL as fbStorageGetDownloadURL,
   } from 'firebase/storage'
+  import { Ref, ref } from 'vue'
 
-  async function pageTokenExample() {
-    const teamQuestionStoragePath = fbStorageRef(
-      firebaseStorage,
-      '/t29'
-      // `/t${teamId}/q${currentQuestionId}`
-    )
+  const imageUrl: Ref<string> = ref('')
+  const teamQuestionStoragePath = fbStorageRef(
+    firebaseStorage,
+    '/t29/q1'
+    // `/t${teamId}/q${currentQuestionId}`
+  )
 
-    // Fetch the first page of 100.
-    const firstPage = await fbStorageList(teamQuestionStoragePath, { maxResults: 100 })
-    console.log(firstPage, 'firstPage')
-    // Use the result.
-    // processItems(firstPage.items)
-    // processPrefixes(firstPage.prefixes)
-
-    // Fetch the second page if there are more elements.
-    if (firstPage.nextPageToken) {
-      const secondPage = await fbStorageList(teamQuestionStoragePath, {
-        maxResults: 100,
-        pageToken: firstPage.nextPageToken,
-      })
-      // processItems(secondPage.items)
-      // processPrefixes(secondPage.prefixes)
-    }
-  }
-  pageTokenExample()
+  fbStorageGetDownloadURL(fbStorageRef(teamQuestionStoragePath))
+    .then((url) => {
+      imageUrl.value = url
+    })
+    .catch((error) => {
+      console.error(error)
+    })
 </script>
