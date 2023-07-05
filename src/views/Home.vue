@@ -1,7 +1,7 @@
 <template>
   <h1 class="text-grey font-header text-xxl mt-16">Scavenger Hunt</h1>
-  <MoonLoader :loading="isLoadingRef" color="#3F474F" class="mx-auto" />
-  <div class="font-sans">
+  <MoonLoader v-if="isLoadingRef" :loading="isLoadingRef" color="#3F474F" class="mx-auto" />
+  <div v-else class="font-sans">
     table
     <select
       id="teams"
@@ -29,7 +29,7 @@
     </button>
     <button @click="() => isInstructionsModalOpen = true" class="w-full">Instructions</button>
     <Modal :dialogState="isInstructionsModalOpen">
-      <Instructions  @showModal="isInstructionsModalOpen = false" />
+      <Instructions @closeInstructionsModal="isInstructionsModalOpen = false" />
     </Modal>
   </div>
 </template>
@@ -38,7 +38,7 @@
   import { ref, watch } from 'vue'
   import { MoonLoader } from 'vue3-spinner'
   import Modal from '../components/Modal.vue'
-  import Instructions from './Instructions.vue'
+  import Instructions from '../components/InstructionsModal.vue'
 
   const isLoadingRef = ref(false)
 
@@ -113,32 +113,23 @@
     await fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
       description: descriptionRef.value,
     })
-
-    isLoadingRef.value = false
   }
 
-  const login = async (page?: string) => {
+  const login = async () => {
     isLoadingRef.value = true
-
-    if (page !== 'instructions') {
-      if (!teamIdRef.value) return (isLoadingRef.value = false)
-    }
 
     if (!descriptionRef.value) {
       descriptionRef.value = teamDescPlaceholderRef.value
     }
 
-    createOrUpdateTeam()
+    await createOrUpdateTeam()
 
     await store.dispatch('setCurrentTeam', { teamId: teamIdRef.value })
-
-    teamProgressRef.value < 2 || page === 'instructions'
-      ? router.push({ path: '/instructions', query: { tid: teamIdRef.value } })
-      : router.push({
-          path: '/question',
-          query: { tid: teamIdRef.value, qid: teamProgressRef.value },
-        })
-
+    router.push({
+      path: '/question',
+      query: { tid: teamIdRef.value, qid: teamProgressRef.value },
+    })
+      
     isLoadingRef.value = false
   }
 

@@ -1,63 +1,43 @@
 <template>
+  <h1 class="h-1/6">
+    <div class="italic text-sm">Hunt {{ currentQuestionId }}</div>
+    <div class="leading-7">{{ questionBank[currentQuestionId - 1] }}</div>
+  </h1>
   <div>
-    <h1 class="italic text-sm">Hunt {{ currentQuestionId }}</h1>
-    <h1>{{ questionBank[currentQuestionId - 1] }}</h1>
-  </div>
-  <img
-    v-if="imageUrl && !isDownloadingRef"
-    :src="imageUrl"
-    class="h-1/4 object-scale-down"
-  />
-  <MoonLoader
-    v-if="isDownloadingRef"
-    :loading="isDownloadingRef"
-    color="#3F474F"
-    class="mx-auto h-1/4"
-  />
-  <div class="flex flex-col">
-    <input
-      id="selectFileInput"
-      type="file"
-      @change="onSelectFile"
-      accept="image/jpeg, image/png"
-      class="hidden"
-    />
     <MoonLoader
-      v-if="isSubmittingRef"
-      :loading="isSubmittingRef"
+      v-if="isDownloadingRef"
+      :loading="isDownloadingRef"
       color="#3F474F"
-      class="mx-auto bg-champagne rounded-lg p-2 w-2/3 my-1 shadow"
+      class="h-full w-full"
     />
-    <label
-      v-else
-      :disabled="disableSubmitRef"
-      class="w-2/3 mx-auto bg-champagne rounded-lg p-2 my-1 shadow"
-      for="selectFileInput"
-    >
-      <img :src="cameraSvg" class="max-h-5 m-auto" /><span>{{
-        computedSelectFileRef ? 'Selected' : 'Select'
-      }}</span>
-    </label>
-    <button
-      @click="onSubmitImage()"
-      :disabled="disableSubmitRef"
-      class="w-2/3 mx-auto bg-green"
-    >
-      <img :src="uploadSvg" class="max-h-5 m-auto capitalize" />Submit
-    </button>
+    <div v-else>
+      <img
+        :src="imageUrl ? imageUrl : cameraSvg"
+        class="object-scale-down h-full w-full pt-6"
+      />
+    </div>
   </div>
+  <button @click="() => (isUploadModalOpen = true)" class="bg-green">
+    {{ imageUrl ? 'click to replace' : 'click to submit' }}
+  </button>
+  <ImageUploadModal
+    :isSubmittingRef="isSubmittingRef"
+    :isUploadModalOpen="isUploadModalOpen"
+    @uploadImage="onSubmitImage"
+    @closeUploadModal="isUploadModalOpen = false"
+  />
   <div class="justify-between flex flex-row">
     <button
-      v-if="currentQuestionId - 1 > 0"
+      :disabled="currentQuestionId - 1 <= 0"
       @click="navigateQuestion('previous')"
-      class="mr-auto"
+      class="mr-auto w-2/5"
     >
       Prev Clue!
     </button>
     <button
       v-if="currentQuestionId < MAX_QUESTIONS"
       @click="navigateQuestion('next')"
-      class="ml-auto"
+      class="ml-auto w-2/5"
     >
       Next Clue!
     </button>
@@ -66,10 +46,12 @@
 </template>
 
 <script setup lang="ts">
-  import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import { ComputedRef, Ref, computed, ref, watch } from 'vue'
   import { MoonLoader } from 'vue3-spinner'
   import { useStore } from 'vuex'
+  import ImageUploadModal from '../components/ImageUploadModal.vue'
+  import cameraSvg from '../assets/icons/camera.svg'
 
   const isDownloadingRef = ref(false)
   const isSubmittingRef = ref(false)
@@ -88,10 +70,6 @@
     getDownloadURL as fbStorageGetDownloadURL,
   } from 'firebase/storage'
 
-
-  import cameraSvg from '../assets/icons/camera.svg'
-  import uploadSvg from '../assets/icons/upload.svg'
-
   const fbDatabase = getDatabase(firebaseApp)
 
   const MAX_QUESTIONS = questionBank.length
@@ -104,30 +82,29 @@
   const imageUrl = ref('')
 
   const fetchImage = async (qid: number) => {
-      const teamQuestionStoragePath = fbStorageRef(
-        firebaseStorage,
-        `/t${teamId}/q${qid}`
-      )
-      if (!teamQuestionStoragePath) return
+    const teamQuestionStoragePath = fbStorageRef(
+      firebaseStorage,
+      `/t${teamId}/q${qid}`
+    )
+    if (!teamQuestionStoragePath) return
 
-      try {
-        isDownloadingRef.value = true
-        const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
+    try {
+      isDownloadingRef.value = true
+      const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
 
-        if (!url) return
+      if (!url) return
 
-        imageUrl.value = url
-      } catch (error) {
-        return (imageUrl.value = '')
-      } finally {
-        isDownloadingRef.value = false
-      }
+      imageUrl.value = url
+    } catch (error) {
+      return (imageUrl.value = '')
+    } finally {
+      isDownloadingRef.value = false
     }
+  }
 
-    fetchImage(currentQuestionId.value)
+  fetchImage(currentQuestionId.value)
 
   watch(currentQuestionId, (newValue, currentValue) => {
-    selectFileRef.value = undefined
     computedSelectFileRef.value = undefined
     disableSubmitRef.value = true
 
@@ -143,38 +120,13 @@
     router.push('/')
   }
 
-  const selectFileRef: Ref<File | undefined> = ref()
-  const computedSelectFileRef = computed({
-    get() {
-      return selectFileRef.value
-    },
-    set(newValue) {
-      selectFileRef.value = newValue
-        ? (selectFileRef.value = newValue)
-        : selectFileRef.value
-    },
-  })
+  const computedSelectFileRef: Ref<File | undefined> = ref()
   const disableSubmitRef = ref(true)
 
-  const onSelectFile = (payload: Event) => {
-    if ((payload.target as HTMLInputElement)?.files?.length === 0) {
-      if (!computedSelectFileRef.value && !selectFileRef.value) {
-        return (disableSubmitRef.value = true)
-      }
+  const onSubmitImage = async (fileRef: File) => {
+    if (!fileRef) return
 
-      return
-    }
-
-    computedSelectFileRef.value = (payload.target as HTMLInputElement)
-      .files![0] as File
-
-    return (disableSubmitRef.value = false)
-  }
-
-  const onSubmitImage = async () => {
-    if (!computedSelectFileRef.value) return
-
-    if (imageUrl) {
+    if (imageUrl.value) {
       const replaceExistingSubmission = window.confirm(
         'Replace existing submission?'
       )
@@ -185,7 +137,7 @@
     isSubmittingRef.value = true
 
     const reader = new FileReader()
-    reader.readAsDataURL(computedSelectFileRef.value)
+    reader.readAsDataURL(fileRef)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(
         firebaseStorage,
@@ -195,7 +147,7 @@
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
-          computedSelectFileRef.value as File
+          fileRef as File
         )
 
         await fbUpdate(
@@ -208,11 +160,10 @@
           }
         )
 
-        computedSelectFileRef.value = undefined
-        selectFileRef.value = undefined
         fetchImage(currentQuestionId.value)
 
         window.alert('Upload successful!')
+        isUploadModalOpen.value = false
       } catch {
         window.alert('Upload failed; Pls try again.')
       } finally {
@@ -234,6 +185,8 @@
       },
     })
   }
+
+  const isUploadModalOpen = ref(false)
 </script>
 
 <style>
