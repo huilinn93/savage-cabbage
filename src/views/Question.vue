@@ -18,7 +18,7 @@
     </div>
   </div>
   <button @click="() => (isUploadModalOpen = true)" class="bg-green">
-    {{ imageUrl ? 'click to replace' : 'click to submit' }}
+    {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
   </button>
   <ImageUploadModal
     :isSubmittingRef="isSubmittingRef"

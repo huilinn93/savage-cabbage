@@ -1,6 +1,11 @@
 <template>
   <h1 class="text-grey font-header text-xxl mt-16">Scavenger Hunt</h1>
-  <MoonLoader v-if="isLoadingRef" :loading="isLoadingRef" color="#3F474F" class="mx-auto" />
+  <MoonLoader
+    v-if="isLoadingRef"
+    :loading="isLoadingRef"
+    color="#3F474F"
+    class="mx-auto"
+  />
   <div v-else class="font-sans">
     table
     <select
@@ -27,7 +32,12 @@
     <button @click="login()" :disabled="disabledLoginRef" class="w-full">
       Login
     </button>
-    <button @click="() => isInstructionsModalOpen = true" class="w-full">Instructions</button>
+    <button
+      @click="() => (isInstructionsModalOpen = true)"
+      class="w-full bg-grey"
+    >
+      Instructions
+    </button>
     <Modal :dialogState="isInstructionsModalOpen">
       <Instructions @closeInstructionsModal="isInstructionsModalOpen = false" />
     </Modal>
@@ -129,9 +139,9 @@
       path: '/question',
       query: { tid: teamIdRef.value, qid: teamProgressRef.value },
     })
-      
+
     isLoadingRef.value = false
   }
 
-const isInstructionsModalOpen = ref(false)
+  const isInstructionsModalOpen = ref(false)
 </script>

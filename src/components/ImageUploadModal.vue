@@ -2,22 +2,23 @@
   <Modal :dialogState="isUploadModalOpen">
     <div v-if="!isSubmittingRef" class="py-6">
       <div
-        v-if="!computedSelectFileRef"
-        class="mx-auto bg-champagne rounded-lg p-3 shadow w-2/3"
-        >
+        class="mx-auto bg-champagne rounded-lg p-4 shadow w-2/3 cursor-pointer"
+      >
         <input
-        id="selectFileInput"
-        type="file"
-        @change="onSelectFile"
-        accept="image/jpeg, image/png"
-        class="hidden"
+          id="selectFileInput"
+          type="file"
+          @change="onSelectFile"
+          accept="image/jpeg, image/png"
+          class="hidden"
         />
-        <label for="selectFileInput"
-        >
-          <img :src="uploadSvg" class="max-h-5 m-auto" />
+        <label for="selectFileInput">
+          <img :src="uploadSvg" class="max-h-5 m-auto" />{{
+            !computedSelectFileRef
+              ? 'select an image'
+              : 'click to reselect an image'
+          }}
         </label>
       </div>
-      <div v-else>image selected</div>
     </div>
     <MoonLoader
       v-else
@@ -25,11 +26,15 @@
       color="#3F474F"
       class="h-full w-full pt-6"
     />
-    <div class="flex flex-col">
-      <button class="w-2/3 mx-auto" @click="onUploadImageEmit" :disabled=!computedSelectFileRef>
+    <div class="flex flex-col py-6">
+      <button
+        class="w-2/3 mx-auto"
+        @click="onUploadImageEmit"
+        :disabled="!computedSelectFileRef"
+      >
         Submit
       </button>
-      <button class="w-2/3 mx-auto" @click="onUploadModalCloseEmit">
+      <button class="w-2/3 mx-auto bg-grey" @click="onUploadModalCloseEmit">
         Cancel
       </button>
     </div>
@@ -50,11 +55,14 @@
     isUploadModalOpen: false,
   })
 
-  const emit = defineEmits(['closeUploadModal', 'uploadImage', 'computedSelectFileRef'])
+  const emit = defineEmits([
+    'closeUploadModal',
+    'uploadImage',
+    'computedSelectFileRef',
+  ])
   const onUploadImageEmit = () => {
     emit('uploadImage', computedSelectFileRef.value)
     // return (selectFileRef.value = undefined)
-
   }
   const onUploadModalCloseEmit = () => {
     emit('closeUploadModal')
