@@ -1,5 +1,5 @@
 <template>
-  <GDialog v-model="dialogStateRef" max-width="400" persistent scrollable local>
+  <GDialog v-model="dialogStateRef" persistent scrollable local>
     <div class="wrapper">
       <div class="content mx-5">
         <slot />
@@ -20,6 +20,9 @@ const props = withDefaults(defineProps<Props>(), {
 const dialogStateRef = computed(() => props.dialogState)
 </script>
 
-<style scoped>
-background-image: url('../assets/images/Background.png');
+<style>
+.wrapper {
+  background: url(../assets/images/DefaultBackground.png) no-repeat;
+  /* background-size: cover; */
+}
 </style>

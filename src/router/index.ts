@@ -9,11 +9,6 @@ const routers = createRouter({
       component: () => import('@/views/Home.vue'),
     },
     {
-      path: '/instructions:tid?',
-      name: 'instructions',
-      component: () => import('@/views/Instructions.vue'),
-    },
-    {
       path: '/question:tid?:qid?',
       name: 'question',
       component: () => import('@/views/Question.vue'),
