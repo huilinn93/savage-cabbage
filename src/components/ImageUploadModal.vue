@@ -46,6 +46,7 @@
   import Modal from './Modal.vue'
   import { MoonLoader } from 'vue3-spinner'
   import uploadSvg from '../assets/icons/upload.svg'
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 
   interface Props {
     isSubmittingRef: boolean
@@ -58,17 +59,15 @@
   const emit = defineEmits([
     'closeUploadModal',
     'uploadImage',
-    'computedSelectFileRef',
   ])
   const onUploadImageEmit = () => {
     emit('uploadImage', computedSelectFileRef.value)
   }
   const onUploadModalCloseEmit = () => {
     emit('closeUploadModal')
-    return (selectFileRef.value = undefined)
   }
 
-  const selectFileRef: Ref<File | undefined> = ref()
+  const selectFileRef: Ref<File | null> = ref(null)
   const computedSelectFileRef = computed({
     get() {
       return selectFileRef.value
@@ -79,22 +78,20 @@
         : selectFileRef.value
     },
   })
-  const disableSubmitRef = ref(true)
 
   const onSelectFile = (payload: Event) => {
     if ((payload.target as HTMLInputElement)?.files?.length === 0) {
-      if (!computedSelectFileRef.value && !selectFileRef.value) {
-        return (disableSubmitRef.value = true)
-      }
 
       return
     }
 
     computedSelectFileRef.value = (payload.target as HTMLInputElement)
       .files![0] as File
-
-    return (disableSubmitRef.value = false)
   }
+
+  onBeforeRouteUpdate(() => {
+    selectFileRef.value = null
+  })
 </script>
 
 <style>

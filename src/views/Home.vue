@@ -70,7 +70,7 @@
   const MAX_QUESTIONS = questionBank.length
 
   const teamIdRef = ref(undefined as unknown as number)
-  const teamProgressRef = ref(0)
+  const teamProgressRef = ref(1)
   const teamDescPlaceholderRef = ref('the best crew')
   const descriptionRef = ref('')
   const disabledLoginRef = ref(true)

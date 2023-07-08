@@ -17,14 +17,14 @@
       />
     </div>
   </div>
-  <button @click="() => (isUploadModalOpen = true)" class="bg-green">
+  <button @click="onSubmitHuntClick" class="bg-green">
     {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
   </button>
   <ImageUploadModal
     :isSubmittingRef="isSubmittingRef"
     :isUploadModalOpen="isUploadModalOpen"
     @uploadImage="onSubmitImage"
-    @closeUploadModal="isUploadModalOpen = false"
+    @closeUploadModal="onCloseUploadModal"
   />
   <div class="justify-between flex flex-row">
     <button
@@ -79,7 +79,7 @@
   const store = useStore()
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
-  const currentQuestionId = ref(1)
+  const currentQuestionId = ref(parseInt(route.query.qid as string))
 
   const imageUrl = ref('')
 
@@ -99,13 +99,19 @@
 
       isDownloadingRef.value = true
 
-      const timestampArr = Object.keys(teams.value[teamId].questions[qid]).map(x => parseInt(x))
-      const latestTimestamp = timestampArr.sort((a: number, b: number) => b - a)[0].toString()
-      latestAnswerRef.value = teams.value[teamId].questions[qid][latestTimestamp].id
+      const timestampArr = Object.keys(teams.value[teamId].questions[qid]).map(
+        (x) => parseInt(x)
+      )
+      const latestTimestamp = timestampArr
+        .sort((a: number, b: number) => b - a)[0]
+        .toString()
+      latestAnswerRef.value =
+        teams.value[teamId].questions[qid][latestTimestamp].id
 
       const teamQuestionStoragePath = fbStorageRef(
-        firebaseStorage, latestAnswerRef.value
-        )
+        firebaseStorage,
+        latestAnswerRef.value
+      )
 
       if (!teamQuestionStoragePath) return
       const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
@@ -121,16 +127,19 @@
   }
 
   fetchImage(currentQuestionId.value)
+  
+  // const disableSubmitRef = ref(true)
 
   watch(currentQuestionId, (newValue, currentValue) => {
-    computedSelectFileRef.value = undefined
-    disableSubmitRef.value = true
+    // disableSubmitRef.value = true
 
     fetchImage(newValue)
   })
 
-  const computedSelectFileRef: Ref<File | undefined> = ref()
-  const disableSubmitRef = ref(true)
+
+  const onSubmitHuntClick = () => {
+    isUploadModalOpen.value = true
+  }
 
   const onSubmitImage = async (fileRef: File) => {
     if (!fileRef) return
@@ -142,20 +151,19 @@
 
       if (!replaceExistingSubmission) return
     }
-    disableSubmitRef.value = true
+    // disableSubmitRef.value = true
     isSubmittingRef.value = true
 
     const reader = new FileReader()
     reader.readAsDataURL(fileRef)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(firebaseStorage, uuidv4())
-      console.log(teamQuestionStoragePath, 'teamQuestionStoragePath')
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
           fileRef as File
         )
-        
+
         let imageUpdates: any = {}
         imageUpdates[Date.parse(uploadResponse.metadata.timeCreated)] = {
           id: uploadResponse.ref.name,
@@ -176,13 +184,16 @@
         console.error(error, 'error')
         window.alert(`Upload failed; Pls try again.`)
       } finally {
-        computedSelectFileRef.value = undefined
         isUploadModalOpen.value = false
-        disableSubmitRef.value = false
         isSubmittingRef.value = false
       }
     }
   }
+
+  const onCloseUploadModal = () => {
+    isUploadModalOpen.value = false
+  }
+
 
   const navigateQuestion = (navigation: string) => {
     navigation === 'next'
