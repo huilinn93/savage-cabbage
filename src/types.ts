@@ -3,11 +3,9 @@
 //   LARGE = 'large',
 // }
 
-
 export type Team = {
-  id: number
   description: string
-  questions: {[index: number]: {'storagePath': string}}
+  questions: any
 }
 
 // export interface PropsIcon {

@@ -15,7 +15,7 @@
           <img :src="uploadSvg" class="max-h-5 m-auto" />{{
             !computedSelectFileRef
               ? 'select an image'
-              : 'click to reselect an image'
+              : 'image selected; click to reselect'
           }}
         </label>
       </div>
@@ -30,7 +30,7 @@
       <button
         class="w-2/3 mx-auto"
         @click="onUploadImageEmit"
-        :disabled="!computedSelectFileRef"
+        :disabled="!computedSelectFileRef || isSubmittingRef"
       >
         Submit
       </button>
@@ -62,14 +62,11 @@
   ])
   const onUploadImageEmit = () => {
     emit('uploadImage', computedSelectFileRef.value)
-    // return (selectFileRef.value = undefined)
   }
   const onUploadModalCloseEmit = () => {
     emit('closeUploadModal')
     return (selectFileRef.value = undefined)
   }
-
-  const isSubmittingRef = ref(false)
 
   const selectFileRef: Ref<File | undefined> = ref()
   const computedSelectFileRef = computed({

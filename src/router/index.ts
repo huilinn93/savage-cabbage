@@ -18,10 +18,6 @@ const routers = createRouter({
       component: () => import('@/views/EndHunt.vue'),
     },
     {
-      path: "/allImages",
-      component: () => import('@/views/MainScreen.vue'),
-    },
-    {
       path: "/:catchAll(.*)*",
       component: () => import('@/views/NotFound.vue'),
     },

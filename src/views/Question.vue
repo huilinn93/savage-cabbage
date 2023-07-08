@@ -53,6 +53,8 @@
   import ImageUploadModal from '../components/ImageUploadModal.vue'
   import cameraSvg from '../assets/icons/camera.svg'
 
+  import { v4 as uuidv4 } from 'uuid'
+
   const isDownloadingRef = ref(false)
   const isSubmittingRef = ref(false)
 
@@ -77,19 +79,35 @@
   const store = useStore()
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
-  const currentQuestionId = ref(parseInt(route.query.qid as string))
+  const currentQuestionId = ref(1)
 
   const imageUrl = ref('')
 
-  const fetchImage = async (qid: number) => {
-    const teamQuestionStoragePath = fbStorageRef(
-      firebaseStorage,
-      `/t${teamId}/q${qid}`
-    )
-    if (!teamQuestionStoragePath) return
+  const teams = computed(() => store.getters.getTeams)
+  const getCurrentTeam: ComputedRef<number> = computed(
+    () => store.getters.getCurrentTeam
+  )
+  const router = useRouter()
+  if (getCurrentTeam.value !== teamId) {
+    window.alert('Pls log in first.')
+    router.push('/')
+  }
 
+  const fetchImage = async (qid: number) => {
     try {
+      const latestAnswerRef = ref('')
+
       isDownloadingRef.value = true
+
+      const timestampArr = Object.keys(teams.value[teamId].questions[qid]).map(x => parseInt(x))
+      const latestTimestamp = timestampArr.sort((a: number, b: number) => b - a)[0].toString()
+      latestAnswerRef.value = teams.value[teamId].questions[qid][latestTimestamp].id
+
+      const teamQuestionStoragePath = fbStorageRef(
+        firebaseStorage, latestAnswerRef.value
+        )
+
+      if (!teamQuestionStoragePath) return
       const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
 
       if (!url) return
@@ -111,15 +129,6 @@
     fetchImage(newValue)
   })
 
-  const getCurrentTeam: ComputedRef<number> = computed(
-    () => store.getters.getCurrentTeam
-  )
-  const router = useRouter()
-  if (getCurrentTeam.value !== teamId) {
-    window.alert('Pls log in first.')
-    router.push('/')
-  }
-
   const computedSelectFileRef: Ref<File | undefined> = ref()
   const disableSubmitRef = ref(true)
 
@@ -139,34 +148,36 @@
     const reader = new FileReader()
     reader.readAsDataURL(fileRef)
     reader.onload = async () => {
-      const teamQuestionStoragePath = fbStorageRef(
-        firebaseStorage,
-        `/t${teamId}/q${currentQuestionId.value}`
-      )
-
+      const teamQuestionStoragePath = fbStorageRef(firebaseStorage, uuidv4())
+      console.log(teamQuestionStoragePath, 'teamQuestionStoragePath')
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
           fileRef as File
         )
+        
+        let imageUpdates: any = {}
+        imageUpdates[Date.parse(uploadResponse.metadata.timeCreated)] = {
+          id: uploadResponse.ref.name,
+        }
 
         await fbUpdate(
           fbRef(
             fbDatabase,
-            'teamsBank/' + teamId + '/questions/' + uploadResponse.ref.name
+            `teamsBank/${teamId}/questions/${currentQuestionId.value}`
           ),
-          {
-            storagePath: uploadResponse.ref.fullPath,
-          }
+          imageUpdates
         )
 
         fetchImage(currentQuestionId.value)
 
         window.alert('Upload successful!')
-        isUploadModalOpen.value = false
-      } catch {
-        window.alert('Upload failed; Pls try again.')
+      } catch (error) {
+        console.error(error, 'error')
+        window.alert(`Upload failed; Pls try again.`)
       } finally {
+        computedSelectFileRef.value = undefined
+        isUploadModalOpen.value = false
         disableSubmitRef.value = false
         isSubmittingRef.value = false
       }

@@ -57,11 +57,9 @@
     ref as fbRef,
     update as fbUpdate,
   } from 'firebase/database'
-  import { firebaseApp, firebaseStorage } from '../firebase'
+  import { firebaseApp } from '../firebase'
 
   const fbDatabase = getDatabase(firebaseApp)
-
-  import { ref as fbStorageRef, list as fbStorageList } from 'firebase/storage'
 
   import { computed } from 'vue'
   import { useStore } from 'vuex'
@@ -102,16 +100,9 @@
 
     teamDescPlaceholderRef.value = team.description
 
-    const teamSubmissionStoragePath = fbStorageRef(
-      firebaseStorage,
-      `/t${currentValue}`
-    )
-
-    fbStorageList(teamSubmissionStoragePath).then((fetchTeamImages) => {
-      if (fetchTeamImages.items.length === MAX_QUESTIONS) {
-        return (disabledLoginRef.value = true)
-      }
-    })
+    if (team.questions && Object.keys(team.questions).length === MAX_QUESTIONS) {
+      return (disabledLoginRef.value = true)
+    }
 
     teamProgressRef.value =
       team.questions && Object.keys(team.questions)
