@@ -30,7 +30,7 @@
     <div class="flex flex-col py-6">
       <button
         class="w-2/3 mx-auto"
-        @click.once="onUploadImageEmit"
+        @click="onUploadImageEmit"
         :disabled="!selectFileRef || isSubmittingRef"
       >
         Submit
