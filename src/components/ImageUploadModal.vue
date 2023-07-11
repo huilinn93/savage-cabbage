@@ -3,17 +3,18 @@
     <div v-if="!isSubmittingRef" class="py-6">
       <div
         class="mx-auto bg-champagne rounded-lg p-4 shadow w-2/3 cursor-pointer"
-      >
+        >
         <input
-          id="selectFileInput"
-          type="file"
-          @change="onSelectFile"
-          accept="image/jpeg, image/png"
-          class="hidden"
+        type="file"
+        accept="image/jpeg, image/png"
+        class="hidden"
+        @change="onSelectFile"
+        @click="(event: Event) => (event.target as HTMLInputElement).value = ''"
+        id="fileInput"
         />
-        <label for="selectFileInput">
+        <label for="fileInput">
           <img :src="uploadSvg" class="max-h-5 m-auto" />{{
-            !computedSelectFileRef
+            !selectFileRef
               ? 'select an image'
               : 'image selected; click to reselect'
           }}
@@ -29,8 +30,8 @@
     <div class="flex flex-col py-6">
       <button
         class="w-2/3 mx-auto"
-        @click="onUploadImageEmit"
-        :disabled="!computedSelectFileRef || isSubmittingRef"
+        @click.once="onUploadImageEmit"
+        :disabled="!selectFileRef || isSubmittingRef"
       >
         Submit
       </button>
@@ -42,11 +43,19 @@
 </template>
 
 <script setup lang="ts">
-  import { Ref, computed, ref } from 'vue'
+  import {
+    ComputedRef,
+    Ref,
+    WritableComputedRef,
+    computed,
+    ref,
+    watch,
+  } from 'vue'
   import Modal from './Modal.vue'
   import { MoonLoader } from 'vue3-spinner'
   import uploadSvg from '../assets/icons/upload.svg'
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+  import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+  // import Pica from 'pica'
 
   interface Props {
     isSubmittingRef: boolean
@@ -56,42 +65,51 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
     isUploadModalOpen: false,
   })
 
-  const emit = defineEmits([
-    'closeUploadModal',
-    'uploadImage',
-  ])
+  const emit = defineEmits(['closeUploadModal', 'uploadImage'])
   const onUploadImageEmit = () => {
-    emit('uploadImage', computedSelectFileRef.value)
+    emit('uploadImage', selectFileRef.value)
+    computedSelectFileRef.value = null
   }
   const onUploadModalCloseEmit = () => {
+    computedSelectFileRef.value = null
     emit('closeUploadModal')
   }
 
   const selectFileRef: Ref<File | null> = ref(null)
-  const computedSelectFileRef = computed({
+  const computedSelectFileRef: WritableComputedRef<File | null> = computed({
     get() {
       return selectFileRef.value
     },
-    set(newValue) {
-      selectFileRef.value = newValue
-        ? (selectFileRef.value = newValue)
-        : selectFileRef.value
+    set(newValue: File | null) {
+      console.log(newValue, 'newValue')
+        selectFileRef.value = newValue ? newValue : null
     },
   })
 
-  const onSelectFile = (payload: Event) => {
-    if ((payload.target as HTMLInputElement)?.files?.length === 0) {
-
-      return
-    }
-
-    computedSelectFileRef.value = (payload.target as HTMLInputElement)
-      .files![0] as File
+  const onSelectFile = (event: Event) => {
+    computedSelectFileRef.value = (event.target as HTMLInputElement).files![0]
   }
 
-  onBeforeRouteUpdate(() => {
-    selectFileRef.value = null
-  })
+  // const compressImage = (fileRef: File) => {
+  //   if (!fileRef) return
+
+  //   const pica = Pica()
+  //   const resizedCanvas = document.createElement('canvas')
+  //   resizedCanvas.height = 768
+  //   resizedCanvas.width = 576
+  //   const reader = new FileReader()
+
+  //   pica
+  //     .resize(reader.readAsDataURL(fileRef), resizedCanvas)
+  //     .then((result: any) => {
+  //       console.log('resize done!', result)
+  //       // computedSelectFileRef.value = result.toDataURL();
+  //     })
+  //     .catch((error: any) => {
+  //       console.log('got error..')
+  //       console.log(error)
+  //     })
+  // }
 </script>
 
 <style>

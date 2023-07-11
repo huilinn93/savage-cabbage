@@ -127,15 +127,10 @@
   }
 
   fetchImage(currentQuestionId.value)
-  
-  // const disableSubmitRef = ref(true)
 
   watch(currentQuestionId, (newValue, currentValue) => {
-    // disableSubmitRef.value = true
-
     fetchImage(newValue)
   })
-
 
   const onSubmitHuntClick = () => {
     isUploadModalOpen.value = true
