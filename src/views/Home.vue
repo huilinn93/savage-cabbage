@@ -100,14 +100,19 @@
 
     teamDescPlaceholderRef.value = team.description
 
-    if (team.questions && Object.keys(team.questions).length === MAX_QUESTIONS) {
-      return (disabledLoginRef.value = true)
-    }
+    // if (team.questions && Object.keys(team.questions).length === MAX_QUESTIONS) {
+    //   return (disabledLoginRef.value = true)
+    // }
 
-    teamProgressRef.value =
-      team.questions && Object.keys(team.questions)
-        ? Object.keys(team.questions).length + 1
-        : 1
+    if (team.questions && Object.keys(team.questions)) {
+      if (Object.keys(team.questions).length < MAX_QUESTIONS) {
+        teamProgressRef.value = Object.keys(team.questions).length + 1
+      } else {
+        teamProgressRef.value = 7
+      }
+    } else {
+      teamProgressRef.value = 1
+    }
   })
 
   const createOrUpdateTeam = async () => {

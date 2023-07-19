@@ -1,47 +1,46 @@
 <template>
-  <h1 class="h-1/6">
+  <h1>
     <div class="italic text-sm">Hunt {{ currentQuestionId }}</div>
     <div class="leading-7">{{ questionBank[currentQuestionId - 1] }}</div>
   </h1>
-  <div>
-    <MoonLoader
-      v-if="isDownloadingRef"
-      :loading="isDownloadingRef"
-      color="#3F474F"
-      class="h-full w-full"
-    />
-    <div v-else>
-      <img
-        :src="imageUrl ? imageUrl : cameraSvg"
-        class="object-scale-down h-full w-full pt-6"
-      />
-    </div>
-  </div>
-  <button @click="onSubmitHuntClick" class="bg-green">
-    {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
-  </button>
-  <ImageUploadModal
-    :isSubmittingRef="isSubmittingRef"
-    :isUploadModalOpen="isUploadModalOpen"
-    @uploadImage="onSubmitImage"
-    @closeUploadModal="onCloseUploadModal"
+  <MoonLoader
+    v-if="isDownloadingRef" class="h-1/2"
+    :loading="isDownloadingRef"
+    color="#3F474F"
   />
-  <div class="justify-between flex flex-row">
-    <button
-      :disabled="currentQuestionId - 1 <= 0"
-      @click="navigateQuestion('previous')"
-      class="mr-auto w-2/5"
-    >
-      Prev Clue!
+  <div v-else class="h-1/2">
+    <img
+      :src="imageUrl ? imageUrl : cameraSvg"
+      class="object-scale-down h-full w-full"
+    />
+  </div>
+  <div class="h-1/6 grid">
+    <button @click="onSubmitHuntClick" class="bg-green">
+      {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
     </button>
-    <button
-      v-if="currentQuestionId < MAX_QUESTIONS"
-      @click="navigateQuestion('next')"
-      class="ml-auto w-2/5"
-    >
-      Next Clue!
-    </button>
-    <button v-else @click="router.push('/endHunt')">End Hunt!</button>
+    <ImageUploadModal
+      :isSubmittingRef="isSubmittingRef"
+      :isUploadModalOpen="isUploadModalOpen"
+      @uploadImage="onSubmitImage"
+      @closeUploadModal="onCloseUploadModal"
+    />
+    <div class="justify-between flex flex-row">
+      <button
+        :disabled="currentQuestionId - 1 <= 0"
+        @click="navigateQuestion('previous')"
+        class="mr-auto w-2/5"
+      >
+        Prev Clue!
+      </button>
+      <button
+        v-if="currentQuestionId < MAX_QUESTIONS"
+        @click="navigateQuestion('next')"
+        class="ml-auto w-2/5"
+      >
+        Next Clue!
+      </button>
+      <button v-else @click="router.push('/endHunt')">End Hunt!</button>
+    </div>
   </div>
 </template>
 
@@ -136,8 +135,9 @@
     isUploadModalOpen.value = true
   }
 
-  const onSubmitImage = async (fileRef: File) => {
+  const onSubmitImage = async (fileRef: File, processedBlobRef: Blob) => {
     if (!fileRef) return
+    if (!processedBlobRef) return
 
     if (imageUrl.value) {
       const replaceExistingSubmission = window.confirm(
@@ -146,16 +146,23 @@
 
       if (!replaceExistingSubmission) return
     }
-    // disableSubmitRef.value = true
+
     isSubmittingRef.value = true
 
     const reader = new FileReader()
     reader.readAsDataURL(fileRef)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(firebaseStorage, uuidv4())
+      const archivedStoragePath = fbStorageRef(firebaseStorage, `/archived/${uuidv4()}`)
+
+      console.log(fileRef, 'fileRef', processedBlobRef, 'processedBlobRef')
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
+          processedBlobRef as Blob
+        )
+        await fbStorageUploadBytes(
+          archivedStoragePath,
           fileRef as File
         )
 
@@ -188,7 +195,6 @@
   const onCloseUploadModal = () => {
     isUploadModalOpen.value = false
   }
-
 
   const navigateQuestion = (navigation: string) => {
     navigation === 'next'
