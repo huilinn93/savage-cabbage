@@ -1,4 +1,13 @@
 {
+  "targets": {
+    "savage-cabbage-622d1": {
+      "hosting": {
+        "savage-cabbage": [
+          "savage-cabbage"
+        ]
+      }
+    }
+  },
   "projects": {
     "default": "savage-cabbage-622d1"
   }
