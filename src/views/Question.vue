@@ -4,14 +4,15 @@
     <div class="leading-7">{{ questionBank[currentQuestionId - 1] }}</div>
   </h1>
   <MoonLoader
-    v-if="isDownloadingRef" class="h-1/2"
-    :loading="isDownloadingRef"
-    color="#3F474F"
+  v-if="isDownloadingRef"
+  class="h-1/2"
+  :loading="isDownloadingRef"
+  color="#3F474F"
   />
   <div v-else class="h-1/2">
     <img
-      :src="imageUrl ? imageUrl : cameraSvg"
-      class="object-scale-down h-full w-full"
+    :src="imageUrl ? imageUrl : cameraSvg"
+    class="object-scale-down h-full w-full"
     />
   </div>
   <div class="h-1/6 grid">
@@ -21,6 +22,7 @@
     <ImageUploadModal
       :isSubmittingRef="isSubmittingRef"
       :isUploadModalOpen="isUploadModalOpen"
+      :uploadProgressPercentage="uploadProgressPercentage"
       @uploadImage="onSubmitImage"
       @closeUploadModal="onCloseUploadModal"
     />
@@ -69,6 +71,7 @@
     ref as fbStorageRef,
     uploadBytes as fbStorageUploadBytes,
     getDownloadURL as fbStorageGetDownloadURL,
+    uploadBytesResumable as fbStorageUploadBytesResumable,
   } from 'firebase/storage'
 
   const fbDatabase = getDatabase(firebaseApp)
@@ -135,6 +138,17 @@
     isUploadModalOpen.value = true
   }
 
+  const uploadProgressPercentage = ref(0)
+    watch(uploadProgressPercentage, (newValue, currentValue) => {
+      if (newValue === 100) {
+        isUploadModalOpen.value = false
+        uploadProgressPercentage.value = 0
+        isSubmittingRef.value = false
+
+        window.alert('Upload successful!')
+      }
+    })
+
   const onSubmitImage = async (fileRef: File, processedBlobRef: Blob) => {
     if (!fileRef) return
     if (!processedBlobRef) return
@@ -153,18 +167,29 @@
     reader.readAsDataURL(fileRef)
     reader.onload = async () => {
       const teamQuestionStoragePath = fbStorageRef(firebaseStorage, uuidv4())
-      const archivedStoragePath = fbStorageRef(firebaseStorage, `/archived/${uuidv4()}`)
+      const archivedStoragePath = fbStorageRef(
+        firebaseStorage,
+        `/archived/${uuidv4()}`
+      )
 
-      console.log(fileRef, 'fileRef', processedBlobRef, 'processedBlobRef')
       try {
         const uploadResponse = await fbStorageUploadBytes(
           teamQuestionStoragePath,
           processedBlobRef as Blob
         )
-        await fbStorageUploadBytes(
+        const uploadBigFile = fbStorageUploadBytesResumable(
           archivedStoragePath,
           fileRef as File
         )
+
+        uploadBigFile.on('state_changed', (snapshot) => {
+          
+          const percent = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          )
+
+          uploadProgressPercentage.value = percent
+        })
 
         let imageUpdates: any = {}
         imageUpdates[Date.parse(uploadResponse.metadata.timeCreated)] = {
@@ -180,14 +205,9 @@
         )
 
         fetchImage(currentQuestionId.value)
-
-        window.alert('Upload successful!')
       } catch (error) {
         console.error(error, 'error')
         window.alert(`Upload failed; Pls try again.`)
-      } finally {
-        isUploadModalOpen.value = false
-        isSubmittingRef.value = false
       }
     }
   }

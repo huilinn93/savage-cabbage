@@ -1,11 +1,15 @@
 <template>
   <Modal :dialogState="isUploadModalOpen">
     <div v-if="!isSubmittingRef">
-      <div class="h-1/2">
-        <img v-if="processedImageSrcRef" :src="processedImageSrcRef" class="object-scale-down h-full w-full" />
+      <div class="h-1/3">
+        <img
+          v-if="processedImageSrcRef"
+          :src="processedImageSrcRef"
+          class="object-scale-down w-1/2 m-auto"
+        />
       </div>
       <div
-        class="mx-auto my-5 bg-champagne rounded-lg p-4 shadow w-2/3 cursor-pointer"
+        class="h-1/6 mx-auto my-5 bg-champagne rounded-lg p-4 shadow w-2/3 cursor-pointer"
       >
         <img
           v-if="processedImageSrcRef"
@@ -23,20 +27,16 @@
         />
         <label for="fileInput">
           <img :src="uploadSvg" class="max-h-5 m-auto" />{{
-            !origFileRef
-              ? 'select an image'
-              : 'reselect an image'
+            !origFileRef ? 'select an image' : 'reselect an image'
           }}
         </label>
       </div>
     </div>
-    <MoonLoader
-      v-else
-      :loading="true"
-      color="#3F474F"
-      class="h-full w-full pt-6"
-    />
-    <div class="flex flex-col">
+    <div v-else>
+      {{ uploadProgressPercentage }}%
+      <MoonLoader :loading="true" color="#3F474F" class="h-full w-full" />
+    </div>
+    <div class="flex flex-col h-1/6">
       <button
         class="w-2/3 mx-auto"
         @click="onUploadImageEmit"
@@ -44,7 +44,11 @@
       >
         Submit
       </button>
-      <button class="w-2/3 mx-auto bg-grey" :disabled="isSubmittingRef" @click="onUploadModalCloseEmit">
+      <button
+        class="w-2/3 mx-auto bg-grey"
+        :disabled="isSubmittingRef"
+        @click="onUploadModalCloseEmit"
+      >
         Cancel
       </button>
     </div>
@@ -61,6 +65,7 @@
   interface Props {
     isSubmittingRef: boolean
     isUploadModalOpen?: boolean
+    uploadProgressPercentage?: number
   }
   const props = withDefaults(defineProps<Props>(), {
     isUploadModalOpen: false,

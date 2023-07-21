@@ -1,7 +1,7 @@
 <template>
   <GDialog v-model="dialogStateRef">
     <div class="wrapper">
-      <div class="content p-5 h-4/5">
+      <div class="content p-5">
         <slot />
       </div>
     </div>
