@@ -34,7 +34,7 @@
     </div>
     <div v-else>
       {{ uploadProgressPercentage }}%
-      <MoonLoader :loading="true" color="#3F474F" class="h-full w-full" />
+      <MoonLoader :loading="true" color="#3F474F" class="h-full w-full mx-auto" />
     </div>
     <div class="flex flex-col h-1/6">
       <button

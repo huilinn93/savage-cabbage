@@ -5,7 +5,7 @@
   </h1>
   <MoonLoader
   v-if="isDownloadingRef"
-  class="h-1/2"
+  class="h-1/2 mx-auto"
   :loading="isDownloadingRef"
   color="#3F474F"
   />
