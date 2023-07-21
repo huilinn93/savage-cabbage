@@ -1,3 +1,3 @@
 <template>
-  <h1>Hope You Enjoyed The GAME (Geddit? Hurhur.)</h1>
+  <h1>Hope You Enjoyed The GAME^^</h1>
 </template>

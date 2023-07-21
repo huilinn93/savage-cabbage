@@ -1,18 +1,18 @@
 <template>
-  <h1>
+  <h1 class="h-1/6">
     <div class="italic text-sm">Hunt {{ currentQuestionId }}</div>
     <div class="leading-7">{{ questionBank[currentQuestionId - 1] }}</div>
   </h1>
   <MoonLoader
   v-if="isDownloadingRef"
-  class="h-1/2 mx-auto"
+  class="h-1/2 min-h-1/2 max-h-1/2 m-auto"
   :loading="isDownloadingRef"
   color="#3F474F"
   />
-  <div v-else class="h-1/2">
+  <div v-else class="min-h-1/2 max-h-1/2 h-1/2 m-auto">
     <img
     :src="imageUrl ? imageUrl : cameraSvg"
-    class="object-scale-down h-full w-full"
+    class="object-scale-down h-full w-full p-2"
     />
   </div>
   <div class="h-1/6 grid">

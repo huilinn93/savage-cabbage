@@ -4,7 +4,7 @@
     v-if="isLoadingRef"
     :loading="isLoadingRef"
     color="#3F474F"
-    class="mx-auto"
+    class="m-auto"
   />
   <div v-else class="font-sans">
     table
