@@ -3,7 +3,7 @@
   <router-link
     v-if="route.name !== 'home'"
     :to="{ path: '/' }"
-    class="underline w-fit mx-auto"
+    class="underline w-fit mx-auto mt-auto"
     ><img :src="homeSvg" class="max-h-5 m-auto" />Home
   </router-link>
 </template>
