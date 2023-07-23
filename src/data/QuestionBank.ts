@@ -1,10 +1,10 @@
 const questionBank: string[] = [
   '👫 ONE With A Poh And A Teo 👫',
-  '💒 Next COUPLE To Get Married 💒',
+  '💒 COUPLE In Love 💒',
   '💋 THREE Expressions Of Love 💋',
-  '🤝 FOUR Pairs Of Handshakes 🤝',
-  '🖖 FIVE High 5s 🖖',
-  '🥂 SIX People Clinging Glasses 🥂',
+  '🐸 FOUR Best Dressed 🐸',
+  '🤪 FIVE Silly Faces 🤪',
+  '🥂 SIX Clinging Glasses 🥂',
   '🦷 SEVEN Sets Of Teeth 🦷',
 ]
 export default questionBank
