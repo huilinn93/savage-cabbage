@@ -18,7 +18,6 @@
   <div class="h-1/6 grid">
     <button @click="onSubmitHuntClick" class="bg-green" :disabled="questionRef && !questionRef.activated">
       {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
-      {{ questionRef && questionRef.activated }}
     </button>
     <ImageUploadModal
       :isSubmittingRef="isSubmittingRef"
