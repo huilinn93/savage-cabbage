@@ -8,6 +8,11 @@ export type Team = {
   questions: any
 }
 
+export type Question = {
+  "description": string
+  "activated": boolean
+}
+
 // export interface PropsIcon {
 //   left?: {
 //     name: string

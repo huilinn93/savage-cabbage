@@ -1,7 +1,7 @@
 <template>
   <h1 class="h-1/6">
     <div class="italic text-sm">Hunt {{ currentQuestionId }}</div>
-    <div class="leading-7">{{ questionBank[currentQuestionId - 1] }}</div>
+    <div v-if="questionRef" class="leading-7">{{ questionRef.description }}</div>
   </h1>
   <MoonLoader
   v-if="isDownloadingRef"
@@ -16,8 +16,9 @@
     />
   </div>
   <div class="h-1/6 grid">
-    <button @click="onSubmitHuntClick" class="bg-green">
+    <button @click="onSubmitHuntClick" class="bg-green" :disabled="questionRef && !questionRef.activated">
       {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
+      {{ questionRef && questionRef.activated }}
     </button>
     <ImageUploadModal
       :isSubmittingRef="isSubmittingRef"
@@ -35,7 +36,7 @@
         Prev Clue!
       </button>
       <button
-        v-if="currentQuestionId < MAX_QUESTIONS"
+        v-if="(currentQuestionId < questionsBankRef.length) && questionRef"
         @click="navigateQuestion('next')"
         class="ml-auto w-2/5"
       >
@@ -59,12 +60,11 @@
   const isDownloadingRef = ref(false)
   const isSubmittingRef = ref(false)
 
-  import questionBank from '../data/QuestionBank'
-
   import {
     getDatabase,
     ref as fbRef,
     update as fbUpdate,
+    onValue as fbOnValue
   } from 'firebase/database'
   import { firebaseApp, firebaseStorage } from '../firebase'
   import {
@@ -73,10 +73,9 @@
     getDownloadURL as fbStorageGetDownloadURL,
     uploadBytesResumable as fbStorageUploadBytesResumable,
   } from 'firebase/storage'
+import { Question } from '../types'
 
   const fbDatabase = getDatabase(firebaseApp)
-
-  const MAX_QUESTIONS = questionBank.length
 
   const store = useStore()
   const route = useRoute()
@@ -94,6 +93,26 @@
     window.alert('Pls log in first.')
     router.push('/')
   }
+
+  const questionRef: Ref<Question | undefined> = ref()
+  const questionsBankRef: Ref<any[]> = ref([])
+  fbOnValue(
+    fbRef(fbDatabase, 'questionsBank/'),
+    (snapshot) => {
+      const questionsBankArr = Object.entries(snapshot.val()).filter(el => !!el) || []
+      questionsBankRef.value = questionsBankArr
+      questionRef.value = questionsBankArr[currentQuestionId.value - 1][1] as Question
+    }
+  )
+
+  watch([questionsBankRef, currentQuestionId], ([currentBankValue, currentQuestionIdValue], [oldBankValue, oldQuestionIdValue]) => {
+    let newBank = currentBankValue ? currentBankValue : oldBankValue
+
+    if(!newBank) return
+
+    questionsBankRef.value = newBank
+    questionRef.value = newBank[currentQuestionId.value - 1][1] as Question
+  })
 
   const fetchImage = async (qid: number) => {
     try {

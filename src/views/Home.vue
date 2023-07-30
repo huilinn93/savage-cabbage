@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { ref, Ref, watch } from 'vue'
   import { MoonLoader } from 'vue3-spinner'
   import Modal from '../components/Modal.vue'
   import Instructions from '../components/InstructionsModal.vue'
@@ -56,6 +56,7 @@
     getDatabase,
     ref as fbRef,
     update as fbUpdate,
+    onValue as fbOnValue,
   } from 'firebase/database'
   import { firebaseApp } from '../firebase'
 
@@ -66,9 +67,6 @@
 
   import { Team } from '../types'
 
-  import questionBank from '../data/QuestionBank'
-  const MAX_QUESTIONS = questionBank.length
-
   const teamIdRef = ref(undefined as unknown as number)
   const teamProgressRef = ref(1)
   const teamDescPlaceholderRef = ref('the best crew')
@@ -76,6 +74,11 @@
   const disabledLoginRef = ref(true)
 
   const totalTeams = Array.from({ length: 30 }, (_, i) => i + 1)
+
+  const totalQuestions: Ref<number> = ref(7)
+  fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
+    totalQuestions.value = snapshot.val().filter((el: any) => !!el).length
+  })
 
   const store = useStore()
   const teams = computed(() => store.getters.getTeams)
@@ -100,12 +103,8 @@
 
     teamDescPlaceholderRef.value = team.description
 
-    // if (team.questions && Object.keys(team.questions).length === MAX_QUESTIONS) {
-    //   return (disabledLoginRef.value = true)
-    // }
-
     if (team.questions && Object.keys(team.questions)) {
-      if (Object.keys(team.questions).length < MAX_QUESTIONS) {
+      if (Object.keys(team.questions).length < totalQuestions.value) {
         teamProgressRef.value = Object.keys(team.questions).length + 1
       } else {
         teamProgressRef.value = 7
