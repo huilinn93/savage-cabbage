@@ -9,9 +9,11 @@ export type Team = {
 }
 
 export type Question = {
-  "description": string
-  "activated": boolean
+  "description"?: string
+  "activated"?: boolean
 }
+
+export const TOTAL_QUESTIONS = 7
 
 // export interface PropsIcon {
 //   left?: {

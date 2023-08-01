@@ -65,7 +65,7 @@
   import { computed } from 'vue'
   import { useStore } from 'vuex'
 
-  import { Team } from '../types'
+  import { Team, TOTAL_QUESTIONS } from '../types'
 
   const teamIdRef = ref(undefined as unknown as number)
   const teamProgressRef = ref(1)
@@ -75,10 +75,7 @@
 
   const totalTeams = Array.from({ length: 30 }, (_, i) => i + 1)
 
-  const totalQuestions: Ref<number> = ref(7)
-  fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
-    totalQuestions.value = snapshot.val().filter((el: any) => !!el).length
-  })
+  const totalQuestions: number = TOTAL_QUESTIONS
 
   const store = useStore()
   const teams = computed(() => store.getters.getTeams)
@@ -104,10 +101,10 @@
     teamDescPlaceholderRef.value = team.description
 
     if (team.questions && Object.keys(team.questions)) {
-      if (Object.keys(team.questions).length < totalQuestions.value) {
+      if (Object.keys(team.questions).length < totalQuestions) {
         teamProgressRef.value = Object.keys(team.questions).length + 1
       } else {
-        teamProgressRef.value = 7
+        teamProgressRef.value = totalQuestions
       }
     } else {
       teamProgressRef.value = 1
@@ -115,17 +112,15 @@
   })
 
   const createOrUpdateTeam = async () => {
+    const targetDescription: string = descriptionRef.value || teamDescPlaceholderRef.value
+
     await fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
-      description: descriptionRef.value,
+      description: targetDescription,
     })
   }
 
   const login = async () => {
     isLoadingRef.value = true
-
-    if (!descriptionRef.value) {
-      descriptionRef.value = teamDescPlaceholderRef.value
-    }
 
     await createOrUpdateTeam()
 

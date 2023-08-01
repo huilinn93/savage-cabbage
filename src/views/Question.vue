@@ -1,30 +1,36 @@
 <template>
   <h1 class="h-1/6">
     <div class="italic text-sm">Hunt {{ currentQuestionId }}</div>
-    <div v-if="questionRef" class="leading-7">{{ questionRef.description }}</div>
+    <div v-if="questionRef" class="leading-7">
+      {{ questionRef.description }}
+    </div>
   </h1>
   <MoonLoader
-  v-if="isDownloadingRef"
-  class="h-1/2 min-h-1/2 max-h-1/2 m-auto"
-  :loading="isDownloadingRef"
-  color="#3F474F"
+    v-if="isDownloadingRef"
+    class="h-1/2 min-h-1/2 max-h-1/2 m-auto"
+    :loading="isDownloadingRef"
+    color="#3F474F"
   />
   <div v-else class="min-h-1/2 max-h-1/2 h-1/2 m-auto">
     <img
-    :src="imageUrl ? imageUrl : cameraSvg"
-    class="object-scale-down h-full w-full p-2"
+      :src="imageUrl ? imageUrl : cameraSvg"
+      class="object-scale-down h-full w-full p-2"
     />
   </div>
   <div class="h-1/6 grid">
-    <button @click="onSubmitHuntClick" class="bg-green" :disabled="questionRef && !questionRef.activated">
-      {{ imageUrl ? 'Replace Hunt' : 'Submit Hunt' }}
+    <button
+      @click="() => isUploadModalOpen = true"
+      class="bg-green"
+      :disabled="(!questionRef?.activated) || (questionRef?.activated && !!imageUrl)"
+    >
+      {{ imageUrl ? 'Hunt Completed!' : 'Submit Hunt' }}
     </button>
     <ImageUploadModal
       :isSubmittingRef="isSubmittingRef"
       :isUploadModalOpen="isUploadModalOpen"
       :uploadProgressPercentage="uploadProgressPercentage"
       @uploadImage="onSubmitImage"
-      @closeUploadModal="onCloseUploadModal"
+      @closeUploadModal="() => isUploadModalOpen = false"
     />
     <div class="justify-between flex flex-row">
       <button
@@ -35,7 +41,7 @@
         Prev Clue!
       </button>
       <button
-        v-if="(currentQuestionId < questionsBankRef.length) && questionRef"
+        v-if="currentQuestionId < totalQuestions && questionRef"
         @click="navigateQuestion('next')"
         class="ml-auto w-2/5"
       >
@@ -56,14 +62,11 @@
 
   import { v4 as uuidv4 } from 'uuid'
 
-  const isDownloadingRef = ref(false)
-  const isSubmittingRef = ref(false)
-
   import {
     getDatabase,
     ref as fbRef,
     update as fbUpdate,
-    onValue as fbOnValue
+    onValue as fbOnValue,
   } from 'firebase/database'
   import { firebaseApp, firebaseStorage } from '../firebase'
   import {
@@ -72,13 +75,17 @@
     getDownloadURL as fbStorageGetDownloadURL,
     uploadBytesResumable as fbStorageUploadBytesResumable,
   } from 'firebase/storage'
-import { Question } from '../types'
+  import { Question, TOTAL_QUESTIONS } from '../types'
 
+  const isDownloadingRef = ref(false)
+  const isSubmittingRef = ref(false)
+  
   const fbDatabase = getDatabase(firebaseApp)
-
+  
   const store = useStore()
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
+  const totalQuestions: number = TOTAL_QUESTIONS
   const currentQuestionId = ref(parseInt(route.query.qid as string))
 
   const imageUrl = ref('')
@@ -94,18 +101,15 @@ import { Question } from '../types'
   }
 
   const questionRef: Ref<Question | undefined> = ref()
-  const questionsBankRef: Ref<any[]> = ref([])
-  fbOnValue(
-    fbRef(fbDatabase, 'questionsBank/'),
-    (snapshot) => {
-      const questionsBankArr = Object.entries(snapshot.val()).filter(el => !!el) || []
-      questionsBankRef.value = questionsBankArr
-      questionRef.value = questionsBankArr[currentQuestionId.value - 1][1] as Question
-    }
-  )
-
+    const questionsBankRef: Ref<any[]> = ref([])
+    fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
+      questionsBankRef.value = Object.entries(snapshot.val()).filter((el) => !!el) || []
+      questionRef.value = questionsBankRef.value[
+      currentQuestionId.value - 1
+    ][1] as Question
+  })
   watch([questionsBankRef, currentQuestionId], ([currentBankValue, currentQuestionIdValue], [oldBankValue, oldQuestionIdValue]) => {
-    let newBank = currentBankValue ? currentBankValue : oldBankValue
+      let newBank = currentBankValue ? currentBankValue : oldBankValue
 
     if(!newBank) return
 
@@ -119,12 +123,13 @@ import { Question } from '../types'
 
       isDownloadingRef.value = true
 
-      const timestampArr = Object.keys(teams.value[teamId].questions[qid]).map(
-        (x) => parseInt(x)
+      const latestTimestamp: string = Object.keys(
+        teams.value[teamId].questions[qid]
       )
-      const latestTimestamp = timestampArr
+        .map((timestamp) => parseInt(timestamp))
         .sort((a: number, b: number) => b - a)[0]
         .toString()
+
       latestAnswerRef.value =
         teams.value[teamId].questions[qid][latestTimestamp].id
 
@@ -134,6 +139,7 @@ import { Question } from '../types'
       )
 
       if (!teamQuestionStoragePath) return
+
       const url = await fbStorageGetDownloadURL(teamQuestionStoragePath)
 
       if (!url) return
@@ -152,20 +158,16 @@ import { Question } from '../types'
     fetchImage(newValue)
   })
 
-  const onSubmitHuntClick = () => {
-    isUploadModalOpen.value = true
-  }
-
   const uploadProgressPercentage = ref(0)
-    watch(uploadProgressPercentage, (newValue, currentValue) => {
-      if (newValue === 100) {
-        isUploadModalOpen.value = false
-        uploadProgressPercentage.value = 0
-        isSubmittingRef.value = false
+  watch(uploadProgressPercentage, (newValue, currentValue) => {
+    if (newValue === 100) {
+      isUploadModalOpen.value = false
+      uploadProgressPercentage.value = 0
+      isSubmittingRef.value = false
 
-        window.alert('Upload successful!')
-      }
-    })
+      window.alert('Upload successful!')
+    }
+  })
 
   const onSubmitImage = async (fileRef: File, processedBlobRef: Blob) => {
     if (!fileRef) return
@@ -201,7 +203,6 @@ import { Question } from '../types'
         )
 
         uploadBigFile.on('state_changed', (snapshot) => {
-          
           const percent = Math.round(
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100
           )
@@ -230,14 +231,12 @@ import { Question } from '../types'
     }
   }
 
-  const onCloseUploadModal = () => {
-    isUploadModalOpen.value = false
-  }
-
   const navigateQuestion = (navigation: string) => {
-    navigation === 'next'
-      ? (currentQuestionId.value += 1)
-      : (currentQuestionId.value -= 1)
+    if (navigation === 'next') {
+      currentQuestionId.value += 1
+    } else if (navigation === 'previous') {
+      currentQuestionId.value -= 1
+    } else return
 
     router.push({
       query: {
