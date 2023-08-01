@@ -1,12 +1,21 @@
 <template>
   <h1 class="py-6">instructions</h1>
   <ol class="text-justify space-y-2 list-decimal list-inside font-sans mb-16">
-    <li>You are photohunters working together to complete 7 tasks.</li>
-    <li>You may submit as many photos for each question as you like - they will all be live streamed but only the final one will be taken into account.</li>
-    <li>First 3 teams (by tables) to complete all 7 tasks get into the next round.</li>
-    <li>For each hunt, 1 point will be awarded to the team with the most impressive submission.</li>
+    <li>
+      Welcome to photo scavenger hunt! Work as a table to submit photos as fast
+      as possible.
+    </li>
+    <li>There will be a total of 7 hunts to complete - 1 photo per hunt.</li>
+    <li>
+      First 3 tables to submit photos for each hunt will qualify for the judging
+      round, where the best* photos win!
+    </li>
+    <li>
+      Winning table of each hunt wins a prize, so a total of 7 prizes up for
+      grabs! 🍾
+    </li>
   </ol>
-  May the best hooman win.
+  <div>*Best will be determined by our lovely emcees.</div>
   <button class="w-2/3 my-6" @click="onInstructionsModalClose">Close!</button>
 </template>
 
