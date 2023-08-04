@@ -8,7 +8,7 @@
     <li>There will be a total of 7 hunts to complete - 1 photo per hunt.</li>
     <li>
       First 3 tables to submit photos for each hunt will qualify for the judging
-      round, where the best* photos win!
+      round, where the best* photo wins!
     </li>
     <li>
       Winning table of each hunt wins a prize, so a total of 7 prizes up for
