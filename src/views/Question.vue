@@ -15,7 +15,7 @@
     <img
       :src="imageUrl ? imageUrl : cameraSvg"
       class="object-scale-down h-full w-full p-2"
-      @click="() => (!imageUrl ? (isUploadModalOpen = true) : null)"
+      @click="() => ((questionRef?.activated && !imageUrl) ? (isUploadModalOpen = true) : null)"
     />
   </div>
   <div class="h-1/6 grid">
