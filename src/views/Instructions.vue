@@ -20,9 +20,8 @@
 </template>
 
 <script setup lang="ts">
+  import { Question } from '../types'
   import { ref, Ref } from 'vue'
-
-  const isLoadingRef = ref(false)
 
   import {
     getDatabase,
