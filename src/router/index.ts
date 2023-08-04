@@ -14,6 +14,11 @@ const routers = createRouter({
       component: () => import('@/views/Question.vue'),
     },
     {
+      path: '/instructions:tid?:qid?',
+      name: 'instructions',
+      component: () => import('@/views/Instructions.vue'),
+    },
+    {
       path: "/endHunt",
       component: () => import('@/views/EndHunt.vue'),
     },

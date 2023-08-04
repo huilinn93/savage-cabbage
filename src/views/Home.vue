@@ -65,7 +65,7 @@
   import { computed } from 'vue'
   import { useStore } from 'vuex'
 
-  import { Team, TOTAL_QUESTIONS } from '../types'
+  import { Question, Team, TOTAL_QUESTIONS } from '../types'
 
   const teamIdRef = ref(undefined as unknown as number)
   const teamProgressRef = ref(1)
@@ -112,12 +112,23 @@
   })
 
   const createOrUpdateTeam = async () => {
-    const targetDescription: string = descriptionRef.value || teamDescPlaceholderRef.value
+    const targetDescription: string =
+      descriptionRef.value || teamDescPlaceholderRef.value
 
     await fbUpdate(fbRef(fbDatabase, 'teamsBank/' + teamIdRef.value), {
       description: targetDescription,
     })
   }
+
+  const isReadyGame: Ref<boolean> = ref(false)
+  fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
+    const questionsBank =
+      Object.entries(snapshot.val()).filter((el) => !!el) || []
+
+    if (!questionsBank) return
+
+    isReadyGame.value = !!(questionsBank[0][1] as Question).activated
+  })
 
   const login = async () => {
     isLoadingRef.value = true
@@ -125,10 +136,16 @@
     await createOrUpdateTeam()
 
     await store.dispatch('setCurrentTeam', { teamId: teamIdRef.value })
-    router.push({
-      path: '/question',
-      query: { tid: teamIdRef.value, qid: teamProgressRef.value },
-    })
+
+    isReadyGame.value
+      ? router.push({
+          path: '/question',
+          query: { tid: teamIdRef.value, qid: teamProgressRef.value },
+        })
+      : router.push({
+          path: '/instructions',
+          query: { tid: teamIdRef.value, qid: teamProgressRef.value },
+        })
 
     isLoadingRef.value = false
   }

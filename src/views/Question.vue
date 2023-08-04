@@ -15,13 +15,16 @@
     <img
       :src="imageUrl ? imageUrl : cameraSvg"
       class="object-scale-down h-full w-full p-2"
+      @click="() => (!imageUrl ? (isUploadModalOpen = true) : null)"
     />
   </div>
   <div class="h-1/6 grid">
     <button
-      @click="() => isUploadModalOpen = true"
+      @click="() => (isUploadModalOpen = true)"
       class="bg-green"
-      :disabled="(!questionRef?.activated) || (questionRef?.activated && !!imageUrl)"
+      :disabled="
+        !questionRef?.activated || (questionRef?.activated && !!imageUrl)
+      "
     >
       {{ imageUrl ? 'Hunt Completed!' : 'Submit Hunt' }}
     </button>
@@ -30,7 +33,7 @@
       :isUploadModalOpen="isUploadModalOpen"
       :uploadProgressPercentage="uploadProgressPercentage"
       @uploadImage="onSubmitImage"
-      @closeUploadModal="() => isUploadModalOpen = false"
+      @closeUploadModal="() => (isUploadModalOpen = false)"
     />
     <div class="justify-between flex flex-row">
       <button
@@ -79,9 +82,9 @@
 
   const isDownloadingRef = ref(false)
   const isSubmittingRef = ref(false)
-  
+
   const fbDatabase = getDatabase(firebaseApp)
-  
+
   const store = useStore()
   const route = useRoute()
   const teamId: number = parseInt(route.query.tid as string)
@@ -91,31 +94,39 @@
   const imageUrl = ref('')
 
   const teams = computed(() => store.getters.getTeams)
+
+  const router = useRouter()
   const getCurrentTeam: ComputedRef<number> = computed(
     () => store.getters.getCurrentTeam
   )
-  const router = useRouter()
-  if (getCurrentTeam.value !== teamId) {
+  if (currentQuestionId.value !== 1 && getCurrentTeam.value !== teamId) {
     window.alert('Pls log in first.')
     router.push('/')
   }
 
   const questionRef: Ref<Question | undefined> = ref()
-    const questionsBankRef: Ref<any[]> = ref([])
-    fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
-      questionsBankRef.value = Object.entries(snapshot.val()).filter((el) => !!el) || []
-      questionRef.value = questionsBankRef.value[
+  const questionsBankRef: Ref<any[]> = ref([])
+  fbOnValue(fbRef(fbDatabase, 'questionsBank/'), (snapshot) => {
+    questionsBankRef.value =
+      Object.entries(snapshot.val()).filter((el) => !!el) || []
+    questionRef.value = questionsBankRef.value[
       currentQuestionId.value - 1
     ][1] as Question
   })
-  watch([questionsBankRef, currentQuestionId], ([currentBankValue, currentQuestionIdValue], [oldBankValue, oldQuestionIdValue]) => {
+  watch(
+    [questionsBankRef, currentQuestionId],
+    (
+      [currentBankValue, currentQuestionIdValue],
+      [oldBankValue, oldQuestionIdValue]
+    ) => {
       let newBank = currentBankValue ? currentBankValue : oldBankValue
 
-    if(!newBank) return
+      if (!newBank) return
 
-    questionsBankRef.value = newBank
-    questionRef.value = newBank[currentQuestionId.value - 1][1] as Question
-  })
+      questionsBankRef.value = newBank
+      questionRef.value = newBank[currentQuestionId.value - 1][1] as Question
+    }
+  )
 
   const fetchImage = async (qid: number) => {
     try {
