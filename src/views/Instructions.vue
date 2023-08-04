@@ -46,7 +46,7 @@
 
     if (!questionsBank) return
 
-    return (isReadyGame.value = !!(questionsBank[0][1] as Question).activated)
+    return isReadyGame.value = questionsBank.map(el => (el[1] as Question).activated).includes(true)
   })
 
   const begin = () => {
