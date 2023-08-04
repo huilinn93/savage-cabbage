@@ -184,10 +184,12 @@
     if (!fileRef) return
     if (!processedBlobRef) return
 
+    await fetchImage(currentQuestionId.value)
+
     if (imageUrl.value) {
       const replaceExistingSubmission = window.confirm(
-        'Replace existing submission?'
-      )
+        '😉 Replace existing submission?'
+        )
 
       if (!replaceExistingSubmission) return
     }
